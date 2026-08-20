@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Universal Open Knowledge Search Engine — Search books, papers, datasets, patents, and more from 30+ open-access sources in one place.">
+  <title>OpenKnowledge — Search All Open Knowledge</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+</head>
+<body>
+  <!-- Background Glow -->
+  <div class="bg-glow"></div>
+
+  <!-- Header -->
+  <header style="position: absolute; top: 0; right: 0; padding: 20px;">
+    <button id="settings-btn" style="background: none; border: none; font-size: 24px; cursor: pointer;">⚙️</button>
+  </header>
+
+  <!-- Hero Section -->
+  <main class="hero" id="hero">
+    <!-- Logo -->
+    <div class="hero-logo">
+      <div class="logo-icon">OK</div>
+      <span class="logo-text">OpenKnowledge</span>
+    </div>
+
+    <!-- Tagline -->
+    <p class="hero-tagline">
+      Search all open knowledge in one place — books, papers, datasets, patents, code, and more from 30+ trusted sources.
+    </p>
+
+    <!-- Search Bar -->
+    <div class="search-container" id="search-container">
+      <div class="search-bar search-bar--hero">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search books, papers, datasets, patents..."
+          autocomplete="off"
+          aria-label="Search"
+        >
+        <div class="search-actions">
+          <span class="kbd-hint">Enter ↵</span>
+          <button class="search-btn" id="search-btn" aria-label="Search">→</button>
+        </div>
+      </div>
+
+      <!-- Autocomplete Dropdown -->
+      <div class="autocomplete-dropdown" id="autocomplete-dropdown"></div>
+    </div>
+
+    <!-- Category Quick Filters -->
+    <div class="category-tabs" id="category-tabs">
+      <button class="category-tab active" data-category="all">All</button>
+      <button class="category-tab" data-category="books">📚 Books</button>
+      <button class="category-tab" data-category="papers">📄 Papers</button>
+      <button class="category-tab" data-category="datasets">📊 Datasets</button>
+      <button class="category-tab" data-category="patents">📋 Patents</button>
+      <button class="category-tab" data-category="code">💻 Code</button>
+      <button class="category-tab" data-category="govdocs">🏛️ Gov Docs</button>
+      <button class="category-tab" data-category="docs">📖 Docs</button>
+    </div>
+
+    <!-- Trending Searches -->
+    <div class="trending-section">
+      <div class="trending-title">🔥 Trending Searches</div>
+      <div class="trending-tags" id="trending-tags">
+        <button class="trending-tag">Machine Learning</button>
+        <button class="trending-tag">Climate Change</button>
+        <button class="trending-tag">CRISPR Gene Editing</button>
+        <button class="trending-tag">Quantum Computing</button>
+        <button class="trending-tag">Large Language Models</button>
+        <button class="trending-tag">Renewable Energy</button>
+        <button class="trending-tag">Neuroscience</button>
+        <button class="trending-tag">Open Data</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="#">About</a>
+      <a href="#">API Docs</a>
+      <a href="#">GitHub</a>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+    </div>
+    <p>© 2026 OpenKnowledge. Open access to the world's knowledge.</p>
+  </footer>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="glass-card" style="width: 400px; padding: 20px; position: relative;">
+      <h2>Settings</h2>
+      <button id="settings-close" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 20px; cursor: pointer;">✕</button>
+      <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 15px;">
+        <label>
+          API Base URL:
+          <input type="text" id="settings-api-url" style="width: 100%; padding: 8px; margin-top: 5px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; border-radius: 4px;">
+        </label>
+        <label>
+          API Key:
+          <input type="password" id="settings-api-key" style="width: 100%; padding: 8px; margin-top: 5px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: white; border-radius: 4px;">
+        </label>
+        <label>
+          Mock Mode:
+          <select id="settings-mock-mode" style="width: 100%; padding: 8px; margin-top: 5px; background: #222; border: 1px solid var(--border-color); color: white; border-radius: 4px;">
+            <option value="auto">Auto (Fallback if backend down)</option>
+            <option value="always">Always Use Mock Data</option>
+            <option value="never">Never Use Mock Data</option>
+          </select>
+        </label>
+        <button id="settings-save" class="btn btn-primary" style="margin-top: 10px;">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Photo Album & Open Source Knowledge Library API",
+    "version": "1.0.0",
+    "description": "API endpoints for album management, drag-and-drop reordering, and tile preview items."
+  },
+  "paths": {
+    "/api/albums": {
+      "get": {
+        "summary": "Get all albums grouped by date",
+        "responses": {
+          "200": {
+            "description": "List of date groups containing sorted flat albums",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DateGroup"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new album",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAlbumRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Album created successfully"
+          }
+        }
+      }
+    },
+    "/api/albums/reorder": {
+      "put": {
+        "summary": "Update album display order after drag-and-drop",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "orderedAlbumIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                },
+                "required": ["orderedAlbumIds"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Album ordering updated successfully"
+          }
+        }
+      }
+    },
+    "/api/albums/{id}/items": {
+      "get": {
+        "summary": "Get media item tile grid for a specific album",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of media items preview tiles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MediaItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DateGroup": {
+        "type": "object",
+        "properties": {
+          "groupKey": { "type": "string", "example": "2026-08" },
+          "groupTitle": { "type": "string", "example": "August 2026" },
+          "albums": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Album" }
+          }
+        }
+      },
+      "Album": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "title": { "type": "string" },
+          "category": { "type": "string", "enum": ["PHOTO", "BOOK", "RESEARCH_PAPER", "GOVT_DOC", "ARTICLE", "MIXED"] },
+          "date": { "type": "string", "format": "date" },
+          "displayOrder": { "type": "integer" },
+          "coverMediaId": { "type": "string", "format": "uuid", "nullable": true }
+        }
+      },
+      "CreateAlbumRequest": {
+        "type": "object",
+        "required": ["title", "category", "date"],
+        "properties": {
+          "title": { "type": "string" },
+          "category": { "type": "string" },
+          "date": { "type": "string", "format": "date" }
+        }
+      },
+      "MediaItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "albumId": { "type": "string", "format": "uuid" },
+          "title": { "type": "string" },
+          "mediaType": { "type": "string" },
+          "url": { "type": "string" },
+          "thumbnailUrl": { "type": "string" },
+          "tilePosition": { "type": "integer" }
+        }
+      }
+    }
+  }
+}
