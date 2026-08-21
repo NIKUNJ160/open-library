@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConnectorsModule } from '../connectors/connectors.module';
 import { CacheModule } from '../cache/cache.module';
+import { DatabaseModule } from '../database/database.module';
 import { SearchAggregatorService } from './search-aggregator.service';
 import { SearchController } from './search.controller';
 
 @Module({
-  imports: [ConnectorsModule, CacheModule],
+  imports: [ConnectorsModule, CacheModule, DatabaseModule],
   controllers: [SearchController],
   providers: [SearchAggregatorService],
   exports: [SearchAggregatorService],

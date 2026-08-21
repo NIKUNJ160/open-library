@@ -111,4 +111,19 @@ export class OpenaiService {
       throw new HttpException('Failed to generate citation via AI', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  async createEmbedding(text: string): Promise<number[]> {
+    this.ensureConfigured();
+    try {
+      const response = await this.openai.embeddings.create({
+        model: 'text-embedding-3-small',
+        input: text,
+      });
+      return response.data[0].embedding;
+    } catch (error: any) {
+      this.logger.error(`Failed to generate embedding: ${error.message}`, error.stack, 'OpenaiService');
+      throw new HttpException('Failed to generate embedding', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
+
