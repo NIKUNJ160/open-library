@@ -19,9 +19,9 @@ export class DocumentChunk {
   @Column({ type: 'text' })
   content: string;
 
-  // pgvector column for storing 1536-dimensional OpenAI embeddings (or varying depending on model)
-  // We specify vector as the column type and length 1536 as default for text-embedding-ada-002 / text-embedding-3-small
-  @Column({ type: 'vector', length: 1536, nullable: true })
+  // pgvector column for storing 1024-dimensional Nvidia embeddings (nvidia/nv-embedqa-e5-v5)
+  // We specify vector as the column type and length 1024 as default for nvidia/nv-embedqa-e5-v5
+  @Column({ type: 'vector', length: 1024, nullable: true })
   @Index('embedding_hnsw_idx', {
     synchronize: false, // We'll manage this index manually or via migrations if needed
   })

@@ -45,28 +45,30 @@ export class VectorStoreService {
    * Perform a semantic similarity search using pgvector cosine distance (<=>)
    * @param queryEmbedding The vectorized query
    * @param limit Maximum results to return
-   * @param similarityThreshold Threshold for cosine distance (smaller is more similar, 0 is exact)
+   * @param similarityThreshold Optional threshold for cosine distance (smaller is more similar, e.g. 0.5 to 1.0; <=0 means no distance filter)
    */
   async similaritySearch(
     queryEmbedding: number[],
     limit = 5,
-    similarityThreshold = 0.5,
+    similarityThreshold = 1.0,
   ): Promise<any[]> {
     const embeddingStr = `[${queryEmbedding.join(',')}]`;
 
-    // Perform vector similarity search using raw SQL query through TypeORM
-    // pgvector uses <=> for cosine distance
-    const results = await this.chunkRepo
+    const qb = this.chunkRepo
       .createQueryBuilder('chunk')
-      .innerJoinAndSelect('chunk.document', 'document')
-      .where('chunk.embedding <=> :embedding <= :threshold', {
-        embedding: embeddingStr,
-        threshold: similarityThreshold,
-      })
-      .orderBy('chunk.embedding <=> :embedding', 'ASC')
-      .limit(limit)
-      .getMany();
+      .innerJoinAndSelect('chunk.document', 'document');
 
+    if (similarityThreshold && similarityThreshold > 0 && similarityThreshold < 2.0) {
+      qb.where('chunk.embedding <=> :embedding <= :threshold', {
+        threshold: similarityThreshold,
+      });
+    }
+
+    qb.orderBy('chunk.embedding <=> :embedding', 'ASC')
+      .setParameter('embedding', embeddingStr)
+      .limit(limit);
+
+    const results = await qb.getMany();
     return results;
   }
 

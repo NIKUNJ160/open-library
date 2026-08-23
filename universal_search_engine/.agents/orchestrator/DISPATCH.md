@@ -1,7 +1,13 @@
-# Original User Request
+# Dispatch History
 
-## Initial Request — 2026-08-22T19:17:23Z
+## 2026-08-22T19:17:23Z
+You are the Project Orchestrator for Phase 4 of the Universal Open Knowledge Search Engine.
 
+Your working directory is: `d:\books\universal_search_engine\.agents\orchestrator`
+The project codebase is located at: `d:\books\universal_search_engine`
+The original user request is recorded at: `d:\books\universal_search_engine\.agents\ORIGINAL_REQUEST.md`
+
+## Mission & Scope
 Implement Phase 4 of the Universal Open Knowledge Search Engine: a Retrieval-Augmented Generation (RAG) pipeline using NestJS, pgvector, and the Nvidia NIM API (`openai/gpt-oss-120b`). Work wisely to keep the code concise and minimize unnecessary token usage/code bloat.
 
 ### Requirements:

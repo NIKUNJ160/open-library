@@ -1,21 +1,23 @@
-# Handoff Report — Project Sentinel Initialization
+# Handoff Report — Project Sentinel Phase 4 Initialization
 
 ## Observation
 - Recorded user request verbatim to `d:\books\universal_search_engine\ORIGINAL_REQUEST.md` and `d:\books\universal_search_engine\.agents\ORIGINAL_REQUEST.md`.
-- Initialized Sentinel `BRIEFING.md` in `.agents/sentinel/` and `.agents/`.
-- Spawned `teamwork_preview_orchestrator` (ID: `a1a87a74-3d24-4798-a327-5fb6e3af99be`).
-- Scheduled Cron 1 (`*/8 * * * *`) for progress reporting and Cron 2 (`*/10 * * * *`) for liveness checking.
+- Evaluated routing per Routing Decision Table: routed to General path (`teamwork_preview_orchestrator`).
+- Spawned `teamwork_preview_orchestrator` (ID: `5111f397-f077-4927-8637-cf364f19ab1c`).
+- Scheduled Cron 1 (`*/8 * * * *`, task `task-35`) for progress reporting and Cron 2 (`*/10 * * * *`, task `task-37`) for liveness checking.
 
 ## Logic Chain
-- As PROJECT SENTINEL, the primary duties are request recording, orchestrator lifecycle management, periodic progress monitoring via background crons, and initiating mandatory Victory Audit upon completion claim.
-- Delegated project planning, execution, and subagent management to `teamwork_preview_orchestrator`.
+- Sentinel responsibilities: request capture, orchestrator dispatch, background monitoring crons, and mandatory Victory Audit upon completion claim.
+- Phase 4 scope: RAG pipeline in NestJS with pgvector, Nvidia NIM embeddings API (`nvidia/nv-embedqa-e5-v5`), and Nvidia 120B model (`openai/gpt-oss-120b`), `/search/rag` endpoint, and cURL verification.
 
 ## Caveats
-- The orchestrator will run autonomously to decompose requirements, implement NestJS architecture, set up connectors for all 7 open-access source categories, configure Redis/in-memory fallback caching, authentication, Winston logging, Swagger UI, AI stubs, and unit tests.
+- Orchestrator executes planning, specialist delegation (workers/reviewers), testing, and server verification.
+- Victory audit will be triggered independently once orchestrator reports victory.
 
 ## Conclusion
-- Initialization phase complete. Orchestrator active and background crons registered.
+- Initialization and dispatch complete. Orchestrator active and monitoring crons running.
 
 ## Verification Method
-- Crons scheduled: `task-21` (Progress Reporting), `task-23` (Liveness Check).
-- Orchestrator active under ID `a1a87a74-3d24-4798-a327-5fb6e3af99be`.
+- Cron tasks: `task-35` (progress reporter), `task-37` (liveness check).
+- Active orchestrator subagent: `5111f397-f077-4927-8637-cf364f19ab1c`.
+

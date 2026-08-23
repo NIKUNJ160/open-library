@@ -4,3 +4,6 @@ export * from './warning.dto';
 export * from './search-query.dto';
 export * from './search-result.dto';
 export * from './search-response.dto';
+export * from '../../ai/dto/rag-ingest.dto';
+export * from '../../ai/dto/rag-query.dto';
+export * from '../../ai/dto/rag-unified.dto';

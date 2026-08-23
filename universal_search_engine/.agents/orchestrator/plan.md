@@ -1,50 +1,26 @@
-# Project Execution Plan — Universal Open Knowledge Search Engine
+# Phase 4 RAG Pipeline Orchestration Plan
 
-## Overview
-Build a NestJS backend REST API for a Universal Open Knowledge Search Engine that aggregates metadata and links from open-access sources across 7 categories into a unified result schema.
+## 1. Objective
+Implement Phase 4 of the Universal Open Knowledge Search Engine:
+- `RagService` with text splitting, Nvidia embedding generation (`nvidia/nv-embedqa-e5-v5`), vector storage via `VectorStoreService`.
+- RAG Query Execution with question embedding, top 5 similarity search, context preparation, and Nvidia 120B model (`openai/gpt-oss-120b`) inference.
+- API Endpoints in `SearchController` for document ingestion and natural language querying.
+- Live server test with cURL and full unit/integration test coverage.
 
-## Milestones
-
-### Milestone 1: Project Scaffolding & Core Architecture
-- NestJS application setup (`package.json`, `tsconfig.json`, `nest-cli.json`, main entry point)
-- Module structure: `SearchModule`, `ConnectorsModule`, `AuthModule`, `CacheModule`, `AiModule`, `CommonModule`
-- Request validation pipes, global error filter, correlation ID middleware/interceptor
-- Swagger OpenAPI setup at `/api/docs`
-- Health check controller (`GET /api/v1/health`)
-- Verification: `npm install` and basic app startup.
-
-### Milestone 2: Unified Schema & Category Connectors (7 Categories)
-- Unified search result schema definition (`SearchResultDto`, `AuthorDto`, `SearchQueryDto`, `SearchResponseDto`, `WarningDto`)
-- Category Connectors implementation:
-  1. Books: Open Library, Project Gutenberg, Google Books API, Internet Archive
-  2. Research Papers: OpenAlex, CORE, Semantic Scholar, arXiv, PubMed, Europe PMC, DOAJ
-  3. Datasets: Kaggle (metadata), Hugging Face Datasets, Data.gov, Zenodo
-  4. Patents: Google Patents, USPTO, WIPO
-  5. Open-Source Repos: GitHub
-  6. Government Publications: NASA Technical Reports, World Bank Open Data
-  7. Documentation: MDN Web Docs
-- Search aggregator engine: Parallel query execution, rate limit & timeout handling, fault tolerance (returns partial results + `warnings` array on individual source errors).
-- Verification: Unit tests for connector normalization & aggregator error handling.
-
-### Milestone 3: API Gateway, Auth, & Caching System
-- API Key Guard (`x-api-key` header / query param verification)
-- Redis Cache Module with TTL per source category & automatic fallback to NestJS in-memory CacheManager
-- Advanced search filter support (`type`, `source`, `after`, `before`, `author`, date range, pagination)
-- Verification: Auth 401 response testing, cache hit timing tests, filter accuracy.
-
-### Milestone 4: AI Feature Stub Endpoints
-- AI Controller & DTO definitions for 5 stub endpoints:
-  1. `POST /api/v1/ai/summarize`
-  2. `POST /api/v1/ai/eli5`
-  3. `POST /api/v1/ai/cite`
-  4. `POST /api/v1/ai/ask`
-  5. `GET /api/v1/ai/recommendations`
-- Request DTO validation (returns 400 on malformed input)
-- Schema-compliant mock responses.
-- Verification: Request validation & response schema unit tests.
-
-### Milestone 5: Observability, Documentation & End-to-End Verification
-- Structured JSON logging with `correlationId` tracking across HTTP context & connector requests.
-- Comprehensive `README.md` with architecture, setup instructions, environment variables, API examples.
-- Comprehensive Unit & Integration test suite (`npm test`).
-- Full End-to-End verification against all user acceptance criteria.
+## 2. Orchestration Phases
+1. **Survey (Parallel Explorers)**:
+   - Explorer 1: Examine codebase structure, NestJS setup, package.json dependencies, config service, environment variables (.env, NVIDIA API keys, DB config).
+   - Explorer 2: Examine existing `VectorStoreService`, database schema / pgvector setup, knowledge_db tables, existing search modules.
+   - Explorer 3: Examine `SearchController`, API routing conventions, DTOs, error handling, existing test suites (jest, e2e).
+2. **Architecture & Decomposition (`PROJECT.md`)**:
+   - Synthesize survey reports into `PROJECT.md` with Feature Inventory, Interface Contracts, and Milestones.
+3. **Implementation Track**:
+   - Milestone 1: RagService Core (text chunker, Nvidia API client for embeddings & chat completions, integration with VectorStoreService).
+   - Milestone 2: SearchController endpoints (`POST /api/v1/search/rag/ingest`, `POST /api/v1/search/rag/query` or equivalent REST routes) and DTOs/validation.
+   - Milestone 3: Unit and Integration Test Suite for RAG pipeline.
+4. **E2E & Live Verification Track**:
+   - Live execution: Start NestJS server, run cURL ingestion, run cURL RAG query, verify 200 OK and accurate response from Nvidia API.
+   - Run complete test suite and check for zero regressions.
+5. **Gate Review & Acceptance**:
+   - Objective & adversarial review via Reviewer.
+   - Final report and user notification.
