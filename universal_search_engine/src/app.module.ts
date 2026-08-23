@@ -16,6 +16,8 @@ import { ResponseTimeMiddleware } from './common/middleware/response-time.middle
 import { Document } from './database/entities/document.entity';
 import { DocumentChunk } from './database/entities/document-chunk.entity';
 import { DatabaseModule } from './database/database.module';
+import { Collection } from './collections/entities/collection.entity';
+import { CollectionsModule } from './collections/collections.module';
 
 @Module({
   imports: [
@@ -32,7 +34,7 @@ import { DatabaseModule } from './database/database.module';
         username: configService.get<string>('DB_USER', 'postgres'),
         password: configService.get<string>('DB_PASSWORD', 'postgres'),
         database: configService.get<string>('DB_NAME', 'knowledge_db'),
-        entities: [Document, DocumentChunk],
+        entities: [Document, DocumentChunk, Collection],
         synchronize: true, // Auto-create tables for now; disable in production
         logging: false,
       }),
@@ -46,6 +48,7 @@ import { DatabaseModule } from './database/database.module';
     AuthModule,
     CacheModule,
     AiModule,
+    CollectionsModule,
   ],
   controllers: [],
   providers: [
