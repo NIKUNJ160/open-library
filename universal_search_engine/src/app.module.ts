@@ -19,6 +19,9 @@ import { DatabaseModule } from './database/database.module';
 import { Collection } from './collections/entities/collection.entity';
 import { CollectionsModule } from './collections/collections.module';
 import { JobsModule } from './jobs/jobs.module';
+import { GraphEntity } from './graph/entities/graph-entity.entity';
+import { GraphRelation } from './graph/entities/graph-relation.entity';
+import { GraphModule } from './graph/graph.module';
 
 @Module({
   imports: [
@@ -35,7 +38,7 @@ import { JobsModule } from './jobs/jobs.module';
         username: configService.get<string>('DB_USER', 'postgres'),
         password: configService.get<string>('DB_PASSWORD', 'postgres'),
         database: configService.get<string>('DB_NAME', 'knowledge_db'),
-        entities: [Document, DocumentChunk, Collection],
+        entities: [Document, DocumentChunk, Collection, GraphEntity, GraphRelation],
         synchronize: true, // Auto-create tables for now; disable in production
         logging: false,
       }),
@@ -51,6 +54,7 @@ import { JobsModule } from './jobs/jobs.module';
     AiModule,
     CollectionsModule,
     JobsModule,
+    GraphModule,
   ],
   controllers: [],
   providers: [
