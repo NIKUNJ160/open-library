@@ -42,6 +42,26 @@ export class VectorStoreService {
   }
 
   /**
+   * Save chunks for an existing document ID
+   */
+  async saveChunksForDocument(
+    documentId: string,
+    chunksData: { content: string; embedding: number[]; chunkIndex: number }[],
+  ): Promise<void> {
+    const chunks = chunksData.map((chunk) => {
+      return this.chunkRepo.create({
+        documentId,
+        chunkIndex: chunk.chunkIndex,
+        content: chunk.content,
+        embedding: `[${chunk.embedding.join(',')}]`,
+      });
+    });
+
+    await this.chunkRepo.save(chunks);
+    this.logger.debug(`Saved ${chunks.length} vectorized chunks for existing document ${documentId}.`);
+  }
+
+  /**
    * Perform a semantic similarity search using pgvector cosine distance (<=>)
    * @param queryEmbedding The vectorized query
    * @param limit Maximum results to return

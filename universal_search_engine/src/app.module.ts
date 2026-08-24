@@ -18,6 +18,7 @@ import { DocumentChunk } from './database/entities/document-chunk.entity';
 import { DatabaseModule } from './database/database.module';
 import { Collection } from './collections/entities/collection.entity';
 import { CollectionsModule } from './collections/collections.module';
+import { JobsModule } from './jobs/jobs.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { CollectionsModule } from './collections/collections.module';
     CacheModule,
     AiModule,
     CollectionsModule,
+    JobsModule,
   ],
   controllers: [],
   providers: [
