@@ -31,17 +31,34 @@ import { GraphModule } from './graph/graph.module';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('DB_HOST', 'localhost'),
-        port: configService.get<number>('DB_PORT', 5432),
-        username: configService.get<string>('DB_USER', 'postgres'),
-        password: configService.get<string>('DB_PASSWORD', 'postgres'),
-        database: configService.get<string>('DB_NAME', 'knowledge_db'),
-        entities: [Document, DocumentChunk, Collection, GraphEntity, GraphRelation],
-        synchronize: configService.get<string>('NODE_ENV') !== 'production',
-        logging: false,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const databaseUrl = configService.get<string>('DATABASE_URL');
+
+        // If DATABASE_URL is provided (Neon, Supabase, Railway PostgreSQL),
+        // use it directly. Otherwise, fall back to individual host/port/user vars.
+        if (databaseUrl) {
+          return {
+            type: 'postgres',
+            url: databaseUrl,
+            entities: [Document, DocumentChunk, Collection, GraphEntity, GraphRelation],
+            synchronize: configService.get<string>('NODE_ENV') !== 'production',
+            logging: false,
+            ssl: { rejectUnauthorized: false }, // Required for Neon cloud SSL
+          };
+        }
+
+        return {
+          type: 'postgres',
+          host: configService.get<string>('DB_HOST', 'localhost'),
+          port: configService.get<number>('DB_PORT', 5432),
+          username: configService.get<string>('DB_USER', 'postgres'),
+          password: configService.get<string>('DB_PASSWORD', 'postgres'),
+          database: configService.get<string>('DB_NAME', 'knowledge_db'),
+          entities: [Document, DocumentChunk, Collection, GraphEntity, GraphRelation],
+          synchronize: configService.get<string>('NODE_ENV') !== 'production',
+          logging: false,
+        };
+      },
       inject: [ConfigService],
     }),
     DatabaseModule,

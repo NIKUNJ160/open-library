@@ -13,9 +13,22 @@ export class CacheService implements OnModuleInit {
   constructor(@Inject(CACHE_MANAGER) private readonly memoryCache: Cache) {}
 
   async onModuleInit() {
+    const redisUrl = process.env.REDIS_URL;
     const redisHost = process.env.REDIS_HOST;
-    if (redisHost) {
-      try {
+
+    try {
+      if (redisUrl) {
+        // Cloud Redis via URL (Upstash, Railway Redis, etc.)
+        // ioredis handles rediss:// (TLS) and redis:// automatically.
+        this.redisClient = new Redis(redisUrl, {
+          lazyConnect: true,
+          connectTimeout: 3000,
+          maxRetriesPerRequest: 1,
+          tls: redisUrl.startsWith('rediss://') ? {} : undefined,
+        });
+        this.logger.log(`Connecting to Redis via REDIS_URL`);
+      } else if (redisHost) {
+        // Local/Docker Redis via host + port
         const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10);
         this.redisClient = new Redis({
           host: redisHost,
@@ -25,30 +38,33 @@ export class CacheService implements OnModuleInit {
           connectTimeout: 2000,
           maxRetriesPerRequest: 1,
         });
+        this.logger.log(`Connecting to Redis at ${redisHost}:${redisPort}`);
+      } else {
+        this.logger.log('No Redis config found. Using in-memory CacheManager.');
+        return;
+      }
 
-        this.redisClient.on('connect', () => {
-          this.logger.log(`Connected to Redis at ${redisHost}:${redisPort}`);
-          this.isRedisActive = true;
-        });
+      this.redisClient.on('connect', () => {
+        this.logger.log(`Connected to Redis at ${redisHost}:${redisUrl || ''}`);
+        this.isRedisActive = true;
+      });
 
-        this.redisClient.on('error', (err) => {
-          this.logger.warn(
-            `Redis connection error (${err.message}). Falling back to in-memory cache.`,
-          );
-          this.isRedisActive = false;
-        });
-
-        await this.redisClient.connect();
-      } catch (err: any) {
+      this.redisClient.on('error', (err) => {
         this.logger.warn(
-          `Failed to initialize Redis client (${err.message}). Using in-memory cache fallback.`,
+          `Redis connection error (${err.message}). Falling back to in-memory cache.`,
         );
         this.isRedisActive = false;
-      }
-    } else {
-      this.logger.log('REDIS_HOST not set. Utilizing in-memory CacheManager.');
+      });
+
+      await this.redisClient.connect();
+    } catch (err: any) {
+      this.logger.warn(
+        `Failed to initialize Redis client (${err.message}). Using in-memory cache fallback.`,
+      );
+      this.isRedisActive = false;
     }
   }
+
 
   async get<T>(key: string): Promise<T | null> {
     if (this.isRedisActive && this.redisClient) {

@@ -26,8 +26,20 @@ async function bootstrap() {
     exclude: ['api/docs'],
   });
 
-  // Enable CORS
-  app.enableCors();
+  // Enable CORS — restricted to ALLOWED_ORIGINS env var in production.
+  // Set ALLOWED_ORIGINS=https://your-app.vercel.app in Railway env vars.
+  const allowedOrigins = process.env.ALLOWED_ORIGINS;
+  app.enableCors({
+    origin: allowedOrigins
+      ? allowedOrigins.split(',').map((o) => o.trim())
+      : process.env.NODE_ENV === 'production'
+        ? false  // No CORS needed — frontend proxies all requests server-side
+        : true,  // Allow all origins in development
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'x-api-key', 'Authorization', 'x-correlation-id'],
+    credentials: false,
+  });
+
 
   // Global Validation Pipe
   app.useGlobalPipes(
