@@ -17,12 +17,17 @@ interface SearchResult {
   isbn?: string;
 }
 
+interface SearchWarning {
+  sourceName?: string;
+  message: string;
+}
+
 interface SearchResponse {
   query: string;
   totalResults: number;
   executionTimeMs: number;
   results: SearchResult[];
-  warnings?: string[];
+  warnings?: (SearchWarning | string)[];
 }
 
 interface Collection {
@@ -259,9 +264,21 @@ function SearchResultsComponent() {
               <div className="rounded-xl border border-amber-500/10 bg-amber-500/5 p-4 text-xs text-amber-400 space-y-1">
                 <span className="font-bold">Partial results returned (warnings):</span>
                 <ul className="list-disc pl-4 space-y-0.5">
-                  {resultsData.warnings.map((warn, i) => (
-                    <li key={i}>{warn}</li>
-                  ))}
+                  {resultsData.warnings.map((warn, i) => {
+                    if (typeof warn === "string") {
+                      return <li key={i}>{warn}</li>;
+                    }
+                    return (
+                      <li key={i}>
+                        {warn?.sourceName && (
+                          <span className="font-semibold uppercase tracking-wider mr-1.5 text-amber-300">
+                            [{warn.sourceName}]
+                          </span>
+                        )}
+                        <span>{warn?.message || (typeof warn === "object" ? JSON.stringify(warn) : String(warn))}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             )}
