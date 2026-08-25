@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "export",
-  distDir: "../frontend",
+  distDir: process.env.VERCEL ? undefined : "../frontend",
   images: {
     unoptimized: true,
   },

@@ -1,7 +1,7 @@
 "use client";
 
-const DEFAULT_API_URL = "http://localhost:3000/api/v1";
-const DEFAULT_API_KEY = "demo-api-key-12345";
+const DEFAULT_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
+const DEFAULT_API_KEY = process.env.NEXT_PUBLIC_API_KEY || "demo-api-key-12345";
 
 export interface Config {
   apiUrl: string;
