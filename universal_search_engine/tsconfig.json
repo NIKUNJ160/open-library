@@ -23,6 +23,7 @@
     "dist",
     "test",
     "**/*.spec.ts",
-    "**/*.e2e-spec.ts"
+    "**/*.e2e-spec.ts",
+    "frontend-dashboard"
   ]
 }
