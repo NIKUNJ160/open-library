@@ -39,7 +39,7 @@ import { GraphModule } from './graph/graph.module';
         password: configService.get<string>('DB_PASSWORD', 'postgres'),
         database: configService.get<string>('DB_NAME', 'knowledge_db'),
         entities: [Document, DocumentChunk, Collection, GraphEntity, GraphRelation],
-        synchronize: true, // Auto-create tables for now; disable in production
+        synchronize: configService.get<string>('NODE_ENV') !== 'production',
         logging: false,
       }),
       inject: [ConfigService],

@@ -32,9 +32,15 @@ export class ApiKeyGuard implements CanActivate {
       (Array.isArray(headerKey) ? headerKey[0] : headerKey) ||
       (Array.isArray(queryKey) ? queryKey[0] : queryKey);
 
-    const configuredKeys =
-      process.env.API_KEY || process.env.API_KEYS || 'demo-api-key-12345';
-    const validKeys = configuredKeys
+    const isProduction = process.env.NODE_ENV === 'production';
+    const configuredKeys = process.env.API_KEY || process.env.API_KEYS;
+
+    if (isProduction && !configuredKeys) {
+      throw new Error('FATAL: Security key API_KEY is not defined in production environment.');
+    }
+
+    const keysString = configuredKeys || 'demo-api-key-12345';
+    const validKeys = keysString
       .split(',')
       .map((key) => key.trim())
       .filter(Boolean);

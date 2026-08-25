@@ -2,6 +2,8 @@ import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import helmet from 'helmet';
+import compression from 'compression';
 import { AppModule } from './app.module';
 import { CustomLogger } from './common/logger/logger.service';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -14,6 +16,10 @@ async function bootstrap() {
 
   const logger = app.get(CustomLogger);
   app.useLogger(logger);
+
+  // Enable security headers and response compression
+  app.use(helmet());
+  app.use(compression());
 
   // Global API Prefix
   app.setGlobalPrefix('api/v1', {
