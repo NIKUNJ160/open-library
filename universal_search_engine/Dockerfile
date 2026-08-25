@@ -6,13 +6,11 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including dev dependencies)
-RUN npm install --legacy-peer-deps
+# Install all dependencies (including dev)
+RUN npm install --legacy-peer-deps --prefer-offline --no-audit --no-fund
 
-# Copy source code
+# Copy source code and build
 COPY . .
-
-# Build the NestJS application
 RUN npm run build
 
 # Stage 2: Production
@@ -27,7 +25,7 @@ ENV NODE_ENV=production
 COPY package*.json ./
 
 # Install only production dependencies
-RUN npm install --only=production --legacy-peer-deps
+RUN npm install --omit=dev --legacy-peer-deps --prefer-offline --no-audit --no-fund
 
 # Copy built application from Stage 1
 COPY --from=build /app/dist ./dist
@@ -41,3 +39,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
 
 # Start the application
 CMD ["node", "dist/main.js"]
+
