@@ -248,71 +248,38 @@ universal_search_engine/
 
 The Universal Search Engine can be easily deployed using Docker and Docker Compose, which spins up the NestJS API, a Redis cache, and an Nginx server for the frontend.
 
-### Prerequisites
-
-- **Docker**: Engine version 20.10+
-- **Docker Compose**: Version v2 (the `docker compose` command)
-
 ### Quick Start (One-Command Deployment)
 
-We provide a convenient startup script that checks prerequisites, prepares the environment, and starts the containers:
+To build and launch the entire production-grade stack (pgvector PostgreSQL, Redis 7, NestJS API, and compiled Nginx frontend) in a single command, run:
 
-**On Linux/macOS:**
 ```bash
-./scripts/start.sh
+docker-compose up -d --build
 ```
 
-**On Windows:**
-```cmd
-.\scripts\start.bat
-```
-
-### Manual Deployment
-
-1. **Ensure `.env` exists**:
-   ```bash
-   cp .env.example .env
-   # Edit .env and add your OPENAI_API_KEY and other specific tokens
-   ```
-
-2. **Run Docker Compose**:
-   ```bash
-   docker compose up -d --build
-   ```
-
-### Accessing the Application
-
-Once deployed, the following services will be available:
-- **Frontend SPA**: [http://localhost:8080](http://localhost:8080)
-- **API Health Check**: [http://localhost:3000/api/v1/health](http://localhost:3000/api/v1/health)
+### Accessing the Services
+Once started:
+- **Frontend App**: [http://localhost:8080](http://localhost:8080)
+- **API Health Check**: [http://localhost:3000/api/v1/health](http://localhost:3000/api/v1/health) (or Nginx routed: [http://localhost:8080/api/v1/health](http://localhost:8080/api/v1/health))
 - **Swagger Documentation**: [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
+- **Local DB Link**: Mapped to host port `5433` (container running Postgres 16 on `5432`).
+- **Local Redis Link**: Mapped to host port `6380` (container running Redis 7 on `6379`).
 
-### Useful Docker Commands
+---
 
-- **View logs across all services**:
-  ```bash
-  docker compose logs -f
-  ```
-- **View logs for the API only**:
-  ```bash
-  docker compose logs -f api
-  ```
-- **Stop all services**:
-  ```bash
-  docker compose down
-  ```
-- **Restart the API service**:
-  ```bash
-  docker compose restart api
-  ```
+## ☁️ Coolify Production Deployment
 
-### Production Considerations
+To deploy this entire stack to your VPS using **Coolify**:
 
-When deploying to a production environment:
-1. Make sure to set `NODE_ENV=production` in your `.env` file.
-2. Update the `nginx.conf` and `docker-compose.yml` if you need SSL/HTTPS support.
-3. Ensure the `frontend` directory contains the production build of your frontend application (`npm run build` from your frontend repo) before spinning up the containers. The Nginx container mounts the `./frontend` directory and serves it directly.
-4. Set strong passwords for Redis if it is exposed, though it is currently isolated within the `app-network`.
+1. **Create a New Project**: Inside Coolify, select **Deploy New Application** and choose **Docker Compose**.
+2. **Repository & Branch**: Point it to your repository URL (`main` branch).
+3. **Paste Docker Compose Configuration**: Paste the contents of [`docker-compose.yml`](file:///d:/books/universal_search_engine/docker-compose.yml).
+4. **Configure Environment Variables**: In the Coolify environment settings, add the required secrets:
+   - `NVIDIA_API_KEY`: Your Nvidia NIM API key.
+   - `NVIDIA_BASE_URL`: `https://integrate.api.nvidia.com/v1`
+   - `NVIDIA_MODEL`: `openai/gpt-oss-120b`
+   - `DB_PASSWORD`: A secure production database password.
+   - `API_KEY`: The master api token for authorization headers.
+5. **Deploy**: Click **Deploy**. Coolify will build the backend and frontend containers, spin up pgvector and Redis, link them dynamically, and expose the Nginx web portal on port `8080` (which Coolify can map to a domain name with automatic Let's Encrypt SSL certificates!).
 
 ---
 
