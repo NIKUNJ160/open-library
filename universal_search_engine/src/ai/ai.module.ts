@@ -7,9 +7,15 @@ import { CitationService } from './services/citation.service';
 import { RagService } from './services/rag.service';
 
 @Module({
-  imports: [HttpModule, DatabaseModule],
+  imports: [
+    HttpModule.register({
+      family: 4,
+    }),
+    DatabaseModule,
+  ],
   controllers: [AiController],
   providers: [OpenaiService, CitationService, RagService],
   exports: [OpenaiService, CitationService, RagService],
 })
 export class AiModule {}
+
