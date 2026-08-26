@@ -4,7 +4,7 @@ const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_BACKEND_URL || "http://localhost:3000";
 
 const nextConfig: NextConfig = {
-  // No `output: "export"` — we need SSR rewrites for the API proxy
+  output: "export",
   images: {
     unoptimized: true,
   },
