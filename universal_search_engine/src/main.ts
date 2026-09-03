@@ -63,7 +63,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Universal Open Knowledge Search Engine API')
     .setDescription(
-      'Aggregated open-access search engine across 30+ sources covering books, papers, datasets, patents, open-source repos, government publications, and documentation.',
+      'Aggregated open-access search engine across 33 verified sources covering books, papers, datasets, patents, open-source repos, government publications, and documentation.',
     )
     .setVersion('1.0.0')
     .addApiKey(

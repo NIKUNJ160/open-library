@@ -103,11 +103,7 @@ const CONNECTORS = [
 ];
 
 @Module({
-  imports: [
-    HttpModule.register({
-      family: 4,
-    }),
-  ],
+  imports: [HttpModule],
   providers: [...CONNECTORS],
   exports: [...CONNECTORS],
 })

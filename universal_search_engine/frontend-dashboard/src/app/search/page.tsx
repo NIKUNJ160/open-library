@@ -247,7 +247,7 @@ function SearchResultsComponent() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-            <p className="text-sm text-slate-400">Federating queries across 22+ API endpoints...</p>
+            <p className="text-sm text-slate-400">Federating queries across 33 open-access API endpoints...</p>
           </div>
         ) : error ? (
           <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-6 text-center text-sm text-red-400">

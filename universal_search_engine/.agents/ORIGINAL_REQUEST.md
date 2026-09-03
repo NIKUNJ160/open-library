@@ -15,3 +15,27 @@ Implement Phase 4 of the Universal Open Knowledge Search Engine: a Retrieval-Aug
 - Successfully execute a cURL command to ask a question based on the ingested document.
 - The query response must return 200 OK and output the generated answer from the Nvidia API.
 - All unit/integration tests must pass without regressions.
+
+## Follow-up — 2026-08-25T18:03:37Z
+
+Fix the React rendering crash (Minified React Error #31) on the search dashboard page when warning payloads are returned from the backend API.
+
+Working directory: `d:\books\universal_search_engine`
+Integrity mode: development
+
+## Requirements
+
+### R1. Fix Search Response Warnings Interface
+Update `frontend-dashboard/src/app/search/page.tsx` type definition for `SearchResponse` to correctly map `warnings` as an array of objects containing `sourceName` and `message` strings, rather than raw strings.
+
+### R2. Safely Render Warning Objects in React
+Update the render logic in `frontend-dashboard/src/app/search/page.tsx` to safely extract and display properties (e.g. `sourceName` and `message`) of warning objects rather than rendering the raw object as a React child.
+
+## Acceptance Criteria
+
+### Production Build & Compilation
+- [ ] Running `npm run build` inside `frontend-dashboard` must compile successfully without any TypeScript or Next.js build errors.
+
+### Runtime Verification
+- [ ] When search response contains warnings, the application does not crash with React Error #31, and details of each warning are clearly rendered in the warnings banner on the UI.
+

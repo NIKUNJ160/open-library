@@ -25,7 +25,7 @@ export class SearchController {
 
   @Get()
   @ApiOperation({
-    summary: 'Search across 22 open knowledge sources',
+    summary: 'Search across 33 open knowledge sources',
     description:
       'Aggregates knowledge results across 7 categories (Books, Research Papers, Datasets, Patents, Repos, Gov, Docs) with parallel fault-tolerant execution.',
   })

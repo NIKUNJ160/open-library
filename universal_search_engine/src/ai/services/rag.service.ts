@@ -171,7 +171,7 @@ export class RagService {
       similarityThreshold,
     );
 
-    const modelName = process.env.NVIDIA_MODEL || 'openai/gpt-oss-120b';
+    const modelName = process.env.NVIDIA_MODEL || 'meta/llama-3.2-11b-vision-instruct';
 
     // 3. If no chunks found, return helpful response
     if (!retrievedChunks || retrievedChunks.length === 0) {

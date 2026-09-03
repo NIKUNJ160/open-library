@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: universal_search_db
+    restart: always
+    environment:
+      POSTGRES_DB: knowledge_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Nikunj@1608}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: universal_search_redis
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: universal_search_api
+    restart: always
+    depends_on:
+      - db
+      - redis
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-Nikunj@1608}
+      - DB_NAME=knowledge_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PORT=3000
+      - API_KEY=${API_KEY:-demo-api-key-12345}
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY:-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}
+      - NVIDIA_BASE_URL=${NVIDIA_BASE_URL:-https://integrate.api.nvidia.com/v1}
+      - NVIDIA_MODEL=${NVIDIA_MODEL:-meta/llama-3.2-11b-vision-instruct}
+      - NVIDIA_EMBEDDING_MODEL=${NVIDIA_EMBEDDING_MODEL:-nvidia/llama-nemotron-embed-vl-1b-v2}
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv6.conf.default.disable_ipv6=1
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: universal_search_frontend
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+    networks:
+      - app-network
+
+volumes:
+  pgdata:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge

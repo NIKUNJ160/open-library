@@ -12,7 +12,7 @@ export class OpenaiService {
     // Using Nvidia API Integration provided by the user
     const apiKey = process.env.NVIDIA_API_KEY || process.env.OPENAI_API_KEY;
     const baseURL = process.env.NVIDIA_BASE_URL || 'https://integrate.api.nvidia.com/v1';
-    this.modelName = process.env.NVIDIA_MODEL || 'openai/gpt-oss-120b';
+    this.modelName = process.env.NVIDIA_MODEL || 'meta/llama-3.2-11b-vision-instruct';
 
     if (apiKey && apiKey !== 'your_openai_api_key_here') {
       this.openai = new OpenAI({
@@ -147,11 +147,12 @@ export class OpenaiService {
   async createEmbedding(text: string, inputType: 'passage' | 'query' = 'passage'): Promise<number[]> {
     this.ensureConfigured();
     try {
-      const embeddingModel = process.env.NVIDIA_EMBEDDING_MODEL || 'nvidia/nv-embedqa-e5-v5';
+      const embeddingModel = process.env.NVIDIA_EMBEDDING_MODEL || 'nvidia/llama-nemotron-embed-vl-1b-v2';
       const response: any = await (this.openai.embeddings.create as any)({
         model: embeddingModel,
         input: text,
         input_type: inputType,
+        dimensions: 1024,
         truncate: 'END',
       });
       return response.data[0].embedding;
@@ -167,11 +168,12 @@ export class OpenaiService {
       return [];
     }
     try {
-      const embeddingModel = process.env.NVIDIA_EMBEDDING_MODEL || 'nvidia/nv-embedqa-e5-v5';
+      const embeddingModel = process.env.NVIDIA_EMBEDDING_MODEL || 'nvidia/llama-nemotron-embed-vl-1b-v2';
       const response: any = await (this.openai.embeddings.create as any)({
         model: embeddingModel,
         input: texts,
         input_type: inputType,
+        dimensions: 1024,
         truncate: 'END',
       });
       return response.data.map((item: any) => item.embedding);
