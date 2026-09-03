@@ -1,0 +1,74 @@
+name: Continuous Integration & Quality Gate
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  backend-test-and-build:
+    name: Backend (NestJS, Tests & Build)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: universal_search_engine/package-lock.json
+
+      - name: Install Backend Dependencies
+        working-directory: universal_search_engine
+        run: npm ci --legacy-peer-deps --prefer-offline
+
+      - name: Run Backend Test Suite (103 Tests)
+        working-directory: universal_search_engine
+        run: npm test
+
+      - name: Compile NestJS Production Distribution
+        working-directory: universal_search_engine
+        run: npm run build
+
+  frontend-build:
+    name: Frontend (Next.js Static Export)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: universal_search_engine/frontend-dashboard/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: universal_search_engine/frontend-dashboard
+        run: npm ci --legacy-peer-deps --prefer-offline
+
+      - name: Build Next.js Static Export & Check Types
+        working-directory: universal_search_engine/frontend-dashboard
+        run: npm run build
+
+  docker-compose-validate:
+    name: Docker Compose Syntax Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Validate Local Compose File
+        working-directory: universal_search_engine
+        run: docker compose config
+
+      - name: Validate Production Compose File
+        working-directory: universal_search_engine
+        run: docker compose -f docker-compose.prod.yml config

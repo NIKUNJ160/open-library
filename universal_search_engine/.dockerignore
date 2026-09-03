@@ -10,3 +10,7 @@ coverage
 test
 scripts
 README.md
+strix_runs/
+.agents/
+test_results.txt
+frontend/

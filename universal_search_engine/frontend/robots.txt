@@ -1,0 +1,13 @@
+# Allow all standard search engine crawlers
+User-agent: *
+Allow: /
+Allow: /search
+Allow: /ask
+Allow: /collections
+Allow: /graph
+Allow: /paper
+
+# Disallow internal API endpoints from crawler indexing
+Disallow: /api/v1/
+
+Sitemap: https://openlibrary.pages.dev/sitemap.xml
