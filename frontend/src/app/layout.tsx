@@ -1,10 +1,24 @@
 import type { Metadata } from 'next';
+import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
 import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-serif',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
-  title: 'Open Library Knowledge Engine',
-  description: 'Hybrid search and citation-grounded RAG across public knowledge domains',
+  title: 'THE LIBRARY • Open Digital Knowledge Platform',
+  description: 'A modern digital library combining open knowledge, academic research, and editorial curation.',
 };
 
 export default function RootLayout({
@@ -13,15 +27,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen flex flex-col bg-slate-50 text-slate-900 antialiased">
+    <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
+      <body className="min-h-screen flex flex-col bg-library-bg text-library-dark font-sans antialiased selection:bg-library-accent selection:text-white">
         <Header />
         <main className="flex-1">{children}</main>
-        <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
-          <p>
-            Open Library Knowledge Engine • Powered by Open Data, PostgreSQL, pgvector, and FastAPI.
-          </p>
-        </footer>
+        <Footer />
       </body>
     </html>
   );

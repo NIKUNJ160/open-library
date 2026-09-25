@@ -183,19 +183,19 @@ export default function AskPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-sans">
       {/* Header Banner */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-200">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 mb-6 border-b border-library-border">
         <div>
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-indigo-600 text-white shadow-sm">
+            <div className="p-2 rounded-lg bg-library-accent text-white shadow-xs">
               <Sparkles className="w-5 h-5" />
             </div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-              Scholarly AI Assistant (RAG)
+            <h1 className="font-editorial text-2xl sm:text-3xl font-bold text-library-dark tracking-tight">
+              Ask the Library
             </h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-library-secondary mt-1">
             Citation-grounded multi-turn conversational answers backed strictly by verified public knowledge sources.
           </p>
         </div>
@@ -203,7 +203,7 @@ export default function AskPage() {
         {messages.length > 0 && (
           <button
             onClick={handleClear}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-semibold transition"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-library-border hover:border-library-dark bg-library-card hover:bg-white text-library-secondary hover:text-library-dark text-xs font-medium transition"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>Clear Conversation</span>
@@ -213,19 +213,19 @@ export default function AskPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Main Conversation Stream */}
-        <div className="lg:col-span-3 flex flex-col h-[70vh] bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="lg:col-span-3 flex flex-col h-[70vh] bg-white rounded-xl border border-library-border shadow-xs overflow-hidden">
           {/* Messages Area */}
           <div className="flex-1 p-6 overflow-y-auto space-y-6">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-4">
-                <div className="p-4 rounded-2xl bg-indigo-50 text-indigo-600">
+                <div className="p-4 rounded-xl bg-library-card border border-library-border text-library-accent">
                   <Sparkles className="w-8 h-8" />
                 </div>
                 <div className="max-w-md">
-                  <h3 className="font-bold text-slate-800 text-base">
-                    Ask questions grounded in open literature
+                  <h3 className="font-editorial font-bold text-library-dark text-lg">
+                    Inquire Across the Archival Record
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                  <p className="text-xs text-library-secondary mt-1.5 leading-relaxed">
                     Answers are synthesized from retrieved passages in Open Library, Wikipedia, OpenAlex, Crossref, and Europe PMC with inline citation references.
                   </p>
                 </div>
@@ -235,10 +235,10 @@ export default function AskPage() {
                     <button
                       key={i}
                       onClick={() => handleSend(sq)}
-                      className="p-3 text-left rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 transition text-xs font-medium text-slate-700 flex items-center justify-between group"
+                      className="p-3 text-left rounded-lg border border-library-border bg-library-card hover:border-library-accent hover:bg-white transition text-xs font-medium text-library-dark flex items-center justify-between group"
                     >
                       <span className="line-clamp-2">{sq}</span>
-                      <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 flex-shrink-0 ml-2" />
+                      <ChevronRight className="w-4 h-4 text-library-muted group-hover:text-library-accent flex-shrink-0 ml-2 transition" />
                     </button>
                   ))}
                 </div>
@@ -251,14 +251,14 @@ export default function AskPage() {
                     msg.sender === 'user' ? 'items-end' : 'items-start'
                   }`}
                 >
-                  <div className="text-[11px] font-semibold text-slate-400 mb-1 px-1">
-                    {msg.sender === 'user' ? 'You' : 'Open Library Knowledge Engine'}
+                  <div className="text-[11px] font-semibold text-library-muted mb-1 px-1">
+                    {msg.sender === 'user' ? 'You' : 'Library Knowledge Engine'}
                   </div>
                   <div
-                    className={`p-4 rounded-2xl max-w-2xl text-sm leading-relaxed ${
+                    className={`p-4 rounded-xl max-w-2xl text-sm leading-relaxed ${
                       msg.sender === 'user'
-                        ? 'bg-indigo-600 text-white rounded-tr-sm shadow-sm'
-                        : 'bg-slate-50 text-slate-800 border border-slate-200 rounded-tl-sm whitespace-pre-line'
+                        ? 'bg-library-accent text-white rounded-tr-xs shadow-xs'
+                        : 'bg-library-card text-library-dark border border-library-border rounded-tl-xs whitespace-pre-line'
                     }`}
                   >
                     {msg.sender === 'user' ? (
@@ -267,7 +267,7 @@ export default function AskPage() {
                       <>
                         {renderFormattedText(msg.text, msg.sources)}
                         {msg.isStreaming && (
-                          <span className="inline-block w-2 h-4 ml-1 bg-indigo-600 animate-pulse align-middle" />
+                          <span className="inline-block w-2 h-4 ml-1 bg-library-accent animate-pulse align-middle" />
                         )}
                       </>
                     )}
@@ -279,7 +279,7 @@ export default function AskPage() {
           </div>
 
           {/* Chat Input Bar */}
-          <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+          <div className="p-4 border-t border-library-border bg-library-card/50">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -291,14 +291,14 @@ export default function AskPage() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about research papers, books, biology, physics..."
+                placeholder="Ask about research papers, books, biology, physics, philosophy..."
                 disabled={isStreaming}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                className="flex-1 px-4 py-2.5 rounded-lg border border-library-border bg-white text-sm text-library-dark placeholder:text-library-muted focus:outline-none focus:border-library-accent focus:ring-1 focus:ring-library-accent transition"
               />
               <button
                 type="submit"
                 disabled={isStreaming || !input.trim()}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-library-accent hover:bg-library-accent-hover text-white text-xs font-semibold shadow-xs transition disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
               >
                 {isStreaming ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -315,19 +315,19 @@ export default function AskPage() {
 
         {/* Right Reference Sources Inspector */}
         <aside className="lg:col-span-1 space-y-4">
-          <div className="p-4 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <div className="p-4 bg-white rounded-xl border border-library-border shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-library-border pb-3">
+              <div className="flex items-center gap-2 font-editorial font-bold text-library-dark text-sm">
+                <ShieldCheck className="w-4 h-4 text-emerald-700" />
                 <span>Grounding Literature</span>
               </div>
-              <span className="px-2 py-0.5 rounded-md bg-slate-100 text-[10px] font-mono text-slate-600">
+              <span className="px-2 py-0.5 rounded bg-library-card border border-library-border text-[10px] font-mono text-library-secondary">
                 {activeSources.length} cited
               </span>
             </div>
 
             {activeSources.length === 0 ? (
-              <div className="text-center py-10 text-slate-400 text-xs">
+              <div className="text-center py-10 text-library-muted text-xs">
                 <p>Retrieved source passages will appear here during synthesis.</p>
               </div>
             ) : (
@@ -335,33 +335,33 @@ export default function AskPage() {
                 {activeSources.map((s, idx) => (
                   <div
                     key={idx}
-                    className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-1.5 hover:border-indigo-300 transition"
+                    className="p-3 rounded-lg bg-library-card border border-library-border text-xs space-y-1.5 hover:border-library-accent transition"
                   >
-                    <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold uppercase">
+                    <div className="flex items-center justify-between text-[10px] text-library-secondary font-semibold uppercase">
                       <span className="flex items-center gap-1">
-                        <span className="px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-800 font-bold font-mono">
+                        <span className="px-1.5 py-0.2 rounded bg-library-accent/10 text-library-accent font-bold font-mono">
                           [{idx + 1}]
                         </span>
                         {getSourceIcon(s.source)}
                         <span>{s.source}</span>
                       </span>
-                      <span className="text-[9px] lowercase bg-slate-200/60 px-1.5 py-0.5 rounded truncate max-w-[80px]">
+                      <span className="text-[9px] lowercase bg-stone-200/70 px-1.5 py-0.5 rounded truncate max-w-[80px]">
                         {s.license}
                       </span>
                     </div>
 
-                    <h4 className="font-bold text-slate-900 line-clamp-2 leading-tight">
-                      <Link href={`/document/${s.doc_id}`} className="hover:text-indigo-600 transition">
+                    <h4 className="font-editorial font-bold text-library-dark line-clamp-2 leading-tight">
+                      <Link href={`/document/${s.doc_id}`} className="hover:text-library-accent transition">
                         {s.title}
                       </Link>
                     </h4>
 
-                    <p className="text-[11px] text-slate-600 line-clamp-3 leading-relaxed">
+                    <p className="text-[11px] text-library-secondary line-clamp-3 leading-relaxed">
                       {s.snippet}
                     </p>
 
-                    <div className="pt-1 border-t border-slate-200/60 flex items-center justify-between text-[10px]">
-                      <span className="font-mono text-slate-400 truncate max-w-[120px]">
+                    <div className="pt-1 border-t border-library-border/60 flex items-center justify-between text-[10px]">
+                      <span className="font-mono text-library-muted truncate max-w-[120px]">
                         {s.source_id}
                       </span>
                       {s.url && (
@@ -369,7 +369,7 @@ export default function AskPage() {
                           href={s.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-indigo-600 hover:text-indigo-700 font-semibold inline-flex items-center gap-0.5"
+                          className="text-library-accent hover:text-library-accent-hover font-semibold inline-flex items-center gap-0.5"
                         >
                           <span>Upstream</span>
                           <ExternalLink className="w-2.5 h-2.5" />

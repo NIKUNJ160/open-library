@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Header } from '@/components/Header';
 import { KnowledgeGraph } from '@/components/KnowledgeGraph';
 import { getGraphOverview, getEntities } from '@/lib/api';
 import { GraphResponse, EntitySummary } from '@/lib/types';
@@ -62,195 +61,190 @@ export default function GlobalGraphPage() {
   const getTypeIcon = (type: string) => {
     switch (type.toLowerCase()) {
       case 'person':
-        return <User className="w-4 h-4 text-emerald-600" />;
+        return <User className="w-4 h-4 text-emerald-700" />;
       case 'org':
-        return <Building2 className="w-4 h-4 text-amber-600" />;
+        return <Building2 className="w-4 h-4 text-amber-700" />;
       default:
-        return <Tag className="w-4 h-4 text-purple-600" />;
+        return <Tag className="w-4 h-4 text-purple-700" />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Header />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-sans">
+      {/* Hero Header */}
+      <div className="bg-library-dark border border-stone-800 rounded-xl p-6 sm:p-10 text-white shadow-lg relative overflow-hidden">
+        <div className="relative z-10 max-w-3xl space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-library-accent/20 border border-library-accent/40 text-amber-200 text-xs font-semibold">
+            <Network className="w-3.5 h-3.5" />
+            <span>Phase 5: Knowledge Graph & Entity Resolution</span>
+          </div>
+          <h1 className="font-editorial text-3xl sm:text-4xl font-bold tracking-tight text-white">
+            Knowledge Graph & Entity Explorer
+          </h1>
+          <p className="text-stone-300 text-sm sm:text-base leading-relaxed font-sans">
+            Explore interconnected authors, foundational theories, canonical Wikidata entities,
+            and scholarly citations linking open knowledge across disciplines.
+          </p>
+        </div>
+      </div>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Hero Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-10 text-white shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative z-10 max-w-3xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-semibold">
-              <Network className="w-3.5 h-3.5" />
-              <span>Phase 5: Knowledge Graph & Entity Resolution</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              Knowledge Graph & Entity Explorer
-            </h1>
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              Explore interconnected authors, foundational theories, canonical Wikidata entities,
-              and scholarly citations linking open knowledge across disciplines.
+      {/* Filter and Search Bar */}
+      <div className="bg-white border border-library-border rounded-xl p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="relative w-full sm:max-w-md">
+          <Search className="w-4 h-4 text-library-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search entities (e.g. Einstein, Attention, CRISPR)..."
+            className="w-full pl-10 pr-4 py-2 rounded-lg border border-library-border bg-library-card text-sm focus:outline-none focus:border-library-accent focus:ring-1 focus:ring-library-accent text-library-dark placeholder:text-library-muted transition"
+          />
+        </div>
+
+        <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+          {/* Entity Type Filter */}
+          <div className="flex items-center bg-library-card p-1 rounded-lg border border-library-border text-xs font-medium text-library-secondary">
+            {['all', 'person', 'topic', 'org'].map((type) => (
+              <button
+                key={type}
+                onClick={() => setSelectedType(type)}
+                className={`px-3 py-1.5 rounded capitalize transition ${
+                  selectedType === type
+                    ? 'bg-library-accent text-white font-semibold shadow-xs'
+                    : 'hover:text-library-dark'
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+
+          {/* View Mode Switcher */}
+          <div className="flex items-center bg-library-card p-1 rounded-lg border border-library-border text-xs font-medium text-library-secondary">
+            <button
+              onClick={() => setViewMode('graph')}
+              className={`p-1.5 rounded transition ${
+                viewMode === 'graph' ? 'bg-library-accent text-white shadow-xs' : 'hover:text-library-dark'
+              }`}
+              title="Graph View"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-1.5 rounded transition ${
+                viewMode === 'list' ? 'bg-library-accent text-white shadow-xs' : 'hover:text-library-dark'
+              }`}
+              title="Directory List View"
+            >
+              <ListFilter className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 text-library-accent animate-spin mb-3" />
+          <p className="text-library-secondary text-sm">Traversing knowledge graph...</p>
+        </div>
+      ) : viewMode === 'graph' ? (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between text-xs text-library-secondary">
+            <p>
+              Showing top interconnected knowledge hubs. Click any node to open its dedicated
+              subgraph profile.
             </p>
+            <span className="text-library-muted">{graphData?.nodes.length || 0} nodes rendered</span>
           </div>
-        </div>
 
-        {/* Filter and Search Bar */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="relative w-full sm:max-w-md">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search entities (e.g. Einstein, Attention, CRISPR)..."
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 placeholder-slate-400"
+          {graphData && graphData.nodes.length > 0 ? (
+            <KnowledgeGraph
+              nodes={graphData.nodes}
+              edges={graphData.edges}
+              rootId={null}
+              height={600}
             />
-          </div>
-
-          <div className="flex items-center justify-between w-full sm:w-auto gap-3">
-            {/* Entity Type Filter */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-lg text-xs font-medium text-slate-600">
-              {['all', 'person', 'topic', 'org'].map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setSelectedType(type)}
-                  className={`px-3 py-1.5 rounded-md capitalize transition ${
-                    selectedType === type
-                      ? 'bg-white text-indigo-600 font-bold shadow-sm'
-                      : 'hover:text-slate-900'
-                  }`}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-
-            {/* View Mode Switcher */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-lg text-xs font-medium text-slate-600">
-              <button
-                onClick={() => setViewMode('graph')}
-                className={`p-1.5 rounded-md transition ${
-                  viewMode === 'graph' ? 'bg-white text-indigo-600 shadow-sm' : 'hover:text-slate-900'
-                }`}
-                title="Graph View"
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-1.5 rounded-md transition ${
-                  viewMode === 'list' ? 'bg-white text-indigo-600 shadow-sm' : 'hover:text-slate-900'
-                }`}
-                title="Directory List View"
-              >
-                <ListFilter className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content Area */}
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mb-3" />
-            <p className="text-slate-600 text-sm">Traversing knowledge graph...</p>
-          </div>
-        ) : viewMode === 'graph' ? (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between text-xs text-slate-500">
-              <p>
-                Showing top interconnected knowledge hubs. Click any node to open its dedicated
-                subgraph profile.
-              </p>
-              <span>{graphData?.nodes.length || 0} nodes rendered</span>
-            </div>
-
-            {graphData && graphData.nodes.length > 0 ? (
-              <KnowledgeGraph
-                nodes={graphData.nodes}
-                edges={graphData.edges}
-                rootId={null}
-                height={600}
-              />
-            ) : (
-              <div className="p-16 text-center bg-white border border-slate-200 rounded-xl text-slate-500">
-                No graph connections found in the database. Run sample ingestion to populate entities.
-              </div>
-            )}
-          </div>
-        ) : null}
-
-        {/* Entity Cards Directory Grid */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-900">
-              Canonical Entity Directory ({entities.length})
-            </h2>
-            <span className="text-xs text-slate-500">Resolved via ORCID & Wikidata QIDs</span>
-          </div>
-
-          {entities.length === 0 ? (
-            <div className="p-12 text-center bg-white border border-slate-200 rounded-xl text-slate-500">
-              No matching entities found.
-            </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {entities.map((entity) => (
-                <div
-                  key={entity.id}
-                  className="bg-white border border-slate-200 hover:border-indigo-300 p-5 rounded-xl shadow-sm hover:shadow-md transition flex flex-col justify-between group"
-                >
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-200">
-                          {getTypeIcon(entity.entity_type)}
-                        </div>
-                        <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
-                          {entity.entity_type}
-                        </span>
-                      </div>
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                        {entity.doc_count} works
-                      </span>
-                    </div>
-
-                    <Link
-                      href={`/entity/${entity.id}`}
-                      className="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition block leading-snug"
-                    >
-                      {entity.name}
-                    </Link>
-
-                    {entity.description && (
-                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                        {entity.description}
-                      </p>
-                    )}
-
-                    {entity.external_id && (
-                      <div className="pt-1">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-50 border border-slate-200 text-slate-600">
-                          {entity.external_id}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <Link
-                      href={`/entity/${entity.id}`}
-                      className="text-indigo-600 font-semibold hover:text-indigo-700 inline-flex items-center gap-1"
-                    >
-                      <span>Explore Subgraph</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-                </div>
-              ))}
+            <div className="p-16 text-center bg-white border border-library-border rounded-xl text-library-muted">
+              No graph connections found in the database. Run sample ingestion to populate entities.
             </div>
           )}
         </div>
-      </main>
+      ) : null}
+
+      {/* Entity Cards Directory Grid */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-editorial text-xl sm:text-2xl font-bold text-library-dark">
+            Canonical Entity Directory ({entities.length})
+          </h2>
+          <span className="text-xs text-library-secondary">Resolved via ORCID & Wikidata QIDs</span>
+        </div>
+
+        {entities.length === 0 ? (
+          <div className="p-12 text-center bg-white border border-library-border rounded-xl text-library-muted">
+            No matching entities found.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {entities.map((entity) => (
+              <div
+                key={entity.id}
+                className="bg-white border border-library-border hover:border-library-accent p-5 rounded-xl shadow-xs hover:shadow-sm transition flex flex-col justify-between group"
+              >
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-library-card border border-library-border">
+                        {getTypeIcon(entity.entity_type)}
+                      </div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-library-accent/10 text-library-accent border border-library-accent/20">
+                        {entity.entity_type}
+                      </span>
+                    </div>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-library-card border border-library-border text-library-secondary">
+                      {entity.doc_count} works
+                    </span>
+                  </div>
+
+                  <Link
+                    href={`/entity/${entity.id}`}
+                    className="font-editorial text-base font-bold text-library-dark group-hover:text-library-accent transition block leading-snug"
+                  >
+                    {entity.name}
+                  </Link>
+
+                  {entity.description && (
+                    <p className="text-xs text-library-secondary line-clamp-2 leading-relaxed font-sans">
+                      {entity.description}
+                    </p>
+                  )}
+
+                  {entity.external_id && (
+                    <div className="pt-1">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-library-card border border-library-border text-library-muted">
+                        {entity.external_id}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-library-border/60 flex items-center justify-between text-xs">
+                  <Link
+                    href={`/entity/${entity.id}`}
+                    className="text-library-accent font-semibold hover:text-library-accent-hover inline-flex items-center gap-1"
+                  >
+                    <span>Explore Subgraph</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

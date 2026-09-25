@@ -3,12 +3,43 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #F7F5F0;
+  --foreground: #171717;
+}
+
+::selection {
+  background-color: #8B1E2D;
+  color: #FFFFFF;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: #171717;
+  background-color: #F7F5F0;
   font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Editorial typography rules */
+.font-editorial {
+  font-family: var(--font-serif), 'Playfair Display', Georgia, Cambria, serif;
+}
+
+/* Subtle scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F7F5F0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D9D5CE;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8A8782;
 }

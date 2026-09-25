@@ -9,8 +9,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        library: {
+          bg: '#F7F5F0',
+          card: '#EFECE5',
+          border: '#D9D5CE',
+          dark: '#171717',
+          secondary: '#66635F',
+          muted: '#8A8782',
+          accent: '#8B1E2D',
+          'accent-hover': '#701824',
+        },
+      },
+      fontFamily: {
+        serif: ['var(--font-serif)', 'Playfair Display', 'Georgia', 'Cambria', 'serif'],
+        sans: ['var(--font-sans)', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
     },
   },

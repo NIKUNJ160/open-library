@@ -47,7 +47,7 @@ const TYPE_COLORS: Record<string, { bg: string; border: string; text: string }> 
 
 function getNodeColor(node: GraphNode) {
   if (node.is_root) {
-    return { bg: '#4f46e5', border: '#3730a3', text: '#ffffff' };
+    return { bg: '#8B1E2D', border: '#701824', text: '#ffffff' };
   }
   const typeKey = (node.type || '').toLowerCase();
   if (TYPE_COLORS[typeKey]) return TYPE_COLORS[typeKey];
@@ -262,7 +262,7 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-full border border-slate-200 rounded-xl bg-slate-950 overflow-hidden select-none shadow-sm"
+      className="relative w-full border border-library-border rounded-xl bg-slate-950 overflow-hidden select-none shadow-sm"
       style={{ height }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
@@ -278,7 +278,7 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
               onClick={() => setFilterType(t)}
               className={`px-2.5 py-1 rounded capitalize font-medium transition ${
                 filterType === t
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? 'bg-library-accent text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               }`}
             >
@@ -380,7 +380,7 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
                   <circle
                     r={radius + 8}
                     fill="none"
-                    stroke="#6366f1"
+                    stroke="#8B1E2D"
                     strokeWidth="2"
                     strokeOpacity="0.5"
                     className="animate-pulse"

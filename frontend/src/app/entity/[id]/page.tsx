@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Header } from '@/components/Header';
 import { KnowledgeGraph } from '@/components/KnowledgeGraph';
 import { getEntity, getEntityGraph } from '@/lib/api';
 import { EntityDetail, GraphResponse } from '@/lib/types';
@@ -61,11 +60,11 @@ export default function EntityDetailPage() {
   const getTypeIcon = (type: string) => {
     switch (type.toLowerCase()) {
       case 'person':
-        return <User className="w-5 h-5 text-emerald-600" />;
+        return <User className="w-5 h-5 text-emerald-700" />;
       case 'org':
-        return <Building2 className="w-5 h-5 text-amber-600" />;
+        return <Building2 className="w-5 h-5 text-amber-700" />;
       default:
-        return <Tag className="w-5 h-5 text-purple-600" />;
+        return <Tag className="w-5 h-5 text-purple-700" />;
     }
   };
 
@@ -75,45 +74,42 @@ export default function EntityDetailPage() {
       return {
         label: `ORCID: ${cleanOrcid}`,
         url: `https://orcid.org/${cleanOrcid}`,
-        badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-300',
       };
     }
     if (extId.startsWith('Q') && !isNaN(Number(extId.slice(1)))) {
       return {
         label: `Wikidata: ${extId}`,
         url: `https://www.wikidata.org/wiki/${extId}`,
-        badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
+        badgeColor: 'bg-library-card text-library-dark border-library-border',
       };
     }
     return {
       label: extId,
       url: null,
-      badgeColor: 'bg-slate-50 text-slate-700 border-slate-200',
+      badgeColor: 'bg-library-card text-library-secondary border-library-border',
     };
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Header />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-sans">
+      {/* Breadcrumb Navigation */}
+      <div className="mb-6 flex items-center gap-2 text-xs text-library-muted">
+        <Link href="/graph" className="hover:text-library-accent transition flex items-center gap-1 font-medium">
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Knowledge Graph</span>
+        </Link>
+        <span>/</span>
+        <span className="font-semibold text-library-dark truncate">
+          {entity ? entity.name : `Entity #${entityId}`}
+        </span>
+      </div>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb Navigation */}
-        <div className="mb-6 flex items-center gap-2 text-sm text-slate-500">
-          <Link href="/graph" className="hover:text-indigo-600 transition flex items-center gap-1">
-            <ArrowLeft className="w-4 h-4" />
-            <span>Knowledge Graph</span>
-          </Link>
-          <span>/</span>
-          <span className="font-semibold text-slate-900 truncate">
-            {entity ? entity.name : `Entity #${entityId}`}
-          </span>
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 text-library-accent animate-spin mb-3" />
+          <p className="text-library-secondary text-sm">Resolving knowledge graph and entity links...</p>
         </div>
-
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mb-3" />
-            <p className="text-slate-600 text-sm">Resolving knowledge graph and entity links...</p>
-          </div>
         ) : error || !entity ? (
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-700 max-w-xl mx-auto my-12 flex items-start gap-3">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -131,32 +127,32 @@ export default function EntityDetailPage() {
         ) : (
           <div className="space-y-8">
             {/* Entity Header Profile Banner */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+            <div className="bg-white border border-library-border rounded-xl p-6 sm:p-8 shadow-xs">
               <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                 <div className="space-y-3 max-w-3xl">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200">
+                    <div className="p-2.5 rounded-lg bg-library-card border border-library-border">
                       {getTypeIcon(entity.entity_type)}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs uppercase font-bold tracking-wider px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        <span className="text-xs uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-library-accent/10 text-library-accent border border-library-accent/20">
                           {entity.entity_type}
                         </span>
                         {entity.source && (
-                          <span className="text-xs text-slate-500 font-medium">
+                          <span className="text-xs text-library-secondary font-medium">
                             via {entity.source}
                           </span>
                         )}
                       </div>
-                      <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 tracking-tight">
+                      <h1 className="font-editorial text-2xl sm:text-4xl font-bold text-library-dark mt-1 tracking-tight">
                         {entity.name}
                       </h1>
                     </div>
                   </div>
 
                   {entity.description && (
-                    <p className="text-slate-600 text-sm leading-relaxed pt-1">
+                    <p className="text-library-secondary text-sm leading-relaxed pt-1 font-sans">
                       {entity.description}
                     </p>
                   )}
@@ -170,25 +166,25 @@ export default function EntityDetailPage() {
                           href={ext.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border transition hover:opacity-80 ${ext.badgeColor}`}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold border transition hover:opacity-80 ${ext.badgeColor}`}
                         >
                           <span>{ext.label}</span>
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       ) : (
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border ${ext.badgeColor}`}>
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded text-xs font-semibold border ${ext.badgeColor}`}>
                           {ext.label}
                         </span>
                       );
                     })()}
 
                     {entity.aliases && entity.aliases.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
-                        <span className="font-medium text-slate-400">Also known as:</span>
+                      <div className="flex flex-wrap items-center gap-1.5 text-xs text-library-muted">
+                        <span className="font-medium text-library-secondary">Also known as:</span>
                         {entity.aliases.map((alias, i) => (
                           <span
                             key={i}
-                            className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200"
+                            className="bg-library-card text-library-dark px-2 py-0.5 rounded border border-library-border"
                           >
                             {alias}
                           </span>
@@ -199,24 +195,24 @@ export default function EntityDetailPage() {
                 </div>
 
                 {/* Quick Stats Pill */}
-                <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center p-4 bg-slate-50 border border-slate-200/80 rounded-xl min-w-[160px] flex-shrink-0">
-                  <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center p-4 bg-library-card border border-library-border rounded-xl min-w-[160px] flex-shrink-0">
+                  <span className="text-xs font-medium text-library-secondary uppercase tracking-wider">
                     Linked Works
                   </span>
-                  <span className="text-2xl font-black text-indigo-600">
+                  <span className="font-editorial text-3xl font-bold text-library-accent mt-0.5">
                     {entity.linked_documents.length}
                   </span>
                 </div>
               </div>
 
               {/* View Switcher Tabs */}
-              <div className="mt-8 border-t border-slate-100 pt-4 flex items-center gap-3">
+              <div className="mt-8 border-t border-library-border pt-4 flex items-center gap-3">
                 <button
                   onClick={() => setActiveTab('graph')}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${
                     activeTab === 'graph'
-                      ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'text-slate-600 hover:bg-slate-100'
+                      ? 'bg-library-accent text-white shadow-xs'
+                      : 'text-library-secondary hover:text-library-dark hover:bg-library-card'
                   }`}
                 >
                   <Share2 className="w-4 h-4" />
@@ -226,8 +222,8 @@ export default function EntityDetailPage() {
                   onClick={() => setActiveTab('documents')}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${
                     activeTab === 'documents'
-                      ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'text-slate-600 hover:bg-slate-100'
+                      ? 'bg-library-accent text-white shadow-xs'
+                      : 'text-library-secondary hover:text-library-dark hover:bg-library-card'
                   }`}
                 >
                   <BookOpen className="w-4 h-4" />
@@ -239,12 +235,12 @@ export default function EntityDetailPage() {
             {/* Tab 1: Interactive Knowledge Graph */}
             {activeTab === 'graph' && (
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs text-slate-500">
+                <div className="flex items-center justify-between text-xs text-library-secondary">
                   <p>
                     Interactive network showing books, scholarly papers, and co-occurring entities
                     connected to <strong>{entity.name}</strong>.
                   </p>
-                  <span>Drag nodes or click to inspect</span>
+                  <span className="text-library-muted">Drag nodes or click to inspect</span>
                 </div>
                 {graphData && graphData.nodes.length > 0 ? (
                   <KnowledgeGraph
@@ -254,7 +250,7 @@ export default function EntityDetailPage() {
                     height={550}
                   />
                 ) : (
-                  <div className="p-12 text-center bg-white border border-slate-200 rounded-xl text-slate-500">
+                  <div className="p-12 text-center bg-white border border-library-border rounded-xl text-library-muted">
                     No graph connections available for this entity.
                   </div>
                 )}
@@ -264,11 +260,11 @@ export default function EntityDetailPage() {
             {/* Tab 2: Linked Documents List */}
             {activeTab === 'documents' && (
               <div className="space-y-4">
-                <h3 className="text-lg font-bold text-slate-900">
+                <h3 className="font-editorial text-xl font-bold text-library-dark">
                   All Documents Linked to {entity.name}
                 </h3>
                 {entity.linked_documents.length === 0 ? (
-                  <div className="p-8 text-center bg-white border border-slate-200 rounded-xl text-slate-500">
+                  <div className="p-8 text-center bg-white border border-library-border rounded-xl text-library-muted">
                     No linked documents found.
                   </div>
                 ) : (
@@ -276,29 +272,29 @@ export default function EntityDetailPage() {
                     {entity.linked_documents.map((doc) => (
                       <div
                         key={doc.id}
-                        className="bg-white border border-slate-200 hover:border-indigo-300 p-5 rounded-xl shadow-sm hover:shadow-md transition flex flex-col justify-between"
+                        className="bg-white border border-library-border hover:border-library-accent p-5 rounded-xl shadow-xs transition flex flex-col justify-between"
                       >
                         <div className="space-y-2">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                            <span className="px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-library-card text-library-secondary border border-library-border">
                               {doc.source}
                             </span>
-                            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 capitalize">
+                            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-library-accent/10 text-library-accent border border-library-accent/20 capitalize">
                               Role: {doc.role}
                             </span>
                           </div>
 
                           <Link
                             href={`/document/${doc.id}`}
-                            className="text-base font-bold text-slate-900 hover:text-indigo-600 transition block leading-snug line-clamp-2"
+                            className="font-editorial text-base font-bold text-library-dark hover:text-library-accent transition block leading-snug line-clamp-2"
                           >
                             {doc.title}
                           </Link>
                         </div>
 
-                        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                        <div className="mt-4 pt-3 border-t border-library-border/60 flex items-center justify-between text-xs text-library-secondary">
                           <div className="flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5" />
+                            <Calendar className="w-3.5 h-3.5 text-library-muted" />
                             <span>
                               {doc.published_at
                                 ? new Date(doc.published_at).getFullYear()
@@ -307,7 +303,7 @@ export default function EntityDetailPage() {
                           </div>
                           <Link
                             href={`/document/${doc.id}`}
-                            className="font-semibold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1"
+                            className="font-semibold text-library-accent hover:text-library-accent-hover inline-flex items-center gap-1"
                           >
                             <span>Inspect</span>
                             <span>→</span>
@@ -321,7 +317,6 @@ export default function EntityDetailPage() {
             )}
           </div>
         )}
-      </main>
     </div>
   );
 }

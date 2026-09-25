@@ -1,21 +1,23 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { getDocument } from '@/lib/api';
 import { DocumentDetail } from '@/lib/types';
-import { LicenseBadge } from '@/components/LicenseBadge';
 import { CitationModal } from '@/components/CitationModal';
 import {
   ArrowLeft,
-  ExternalLink,
-  Calendar,
-  Layers,
-  Quote,
-  Award,
-  Hash,
   BookOpen,
-  Tag
+  Calendar,
+  Quote,
+  ExternalLink,
+  Tag,
+  User,
+  Hash,
+  Globe,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 
 export default function DocumentPage() {
@@ -39,248 +41,264 @@ export default function DocumentPage() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-slate-500">
-        <p>Loading document details...</p>
+      <div className="flex flex-col items-center justify-center py-28 text-library-secondary">
+        <Loader2 className="w-8 h-8 animate-spin text-library-accent mb-3" />
+        <p className="text-xs uppercase tracking-wider font-semibold">Retrieving bibliographic catalog record...</p>
       </div>
     );
   }
 
   if (error || !doc) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-xl font-bold text-slate-800 mb-2">Document Unavailable</h2>
-        <p className="text-sm text-slate-500 mb-6">{error || 'Could not locate this record.'}</p>
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-4">
+        <h2 className="font-editorial text-2xl font-bold text-library-dark">Document Unavailable</h2>
+        <p className="text-sm text-library-secondary">{error || 'Could not locate this catalog record.'}</p>
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-library-accent text-white text-xs font-bold uppercase tracking-wider hover:bg-library-accent-hover transition"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Search</span>
+          <span>Back to Catalog</span>
         </button>
       </div>
     );
   }
 
   const meta = doc.metadata_json || {};
-  const doi = meta.doi;
-  const pmid = meta.pmid;
-  const pmcid = meta.pmcid;
-  const venue = meta.venue || meta.journal;
-  const citedBy = meta.cited_by_count;
-  const topics = meta.topics || [];
-  const authors = meta.authors || [];
+  const authors: string[] = meta.authors
+    ? Array.isArray(meta.authors)
+      ? meta.authors.map((a: any) => (typeof a === 'string' ? a : a.name || a.display_name))
+      : [String(meta.authors)]
+    : [];
+
+  const year = doc.published_at ? new Date(doc.published_at).getFullYear() : null;
 
   return (
-    <>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
-        {/* Navigation & Action Bar */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => router.back()}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 transition"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back</span>
-          </button>
-
-          <button
-            onClick={() => setCitationOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition shadow-sm border border-indigo-100"
-          >
-            <Quote className="w-3.5 h-3.5" />
-            <span>Cite / Export</span>
-          </button>
+    <div className="space-y-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center gap-2 text-xs text-library-muted">
+          <Link href="/search" className="hover:text-library-accent transition flex items-center gap-1">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Catalog Search</span>
+          </Link>
+          <span>/</span>
+          <span className="uppercase font-semibold text-library-secondary">{doc.source}</span>
+          <span>/</span>
+          <span className="font-bold text-library-dark truncate max-w-sm">{doc.title}</span>
         </div>
 
-        {/* Main Document Card */}
-        <article className="p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-6">
-          {/* Header Metadata */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-500 flex-wrap">
-              <span className="px-2.5 py-1 rounded-lg bg-slate-100">{doc.source}</span>
-              <span>•</span>
-              <span className="capitalize">{doc.doc_type}</span>
-              {doc.published_at && (
-                <>
-                  <span>•</span>
-                  <span className="inline-flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" />
-                    {doc.published_at.slice(0, 10)}
+        {/* Section 13: Two-Column Book / Document Presentation */}
+        <section className="bg-white border border-library-border rounded-md p-6 sm:p-10 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 sm:gap-12">
+            {/* Left Column: Simulated Book Cover & Quick Actions */}
+            <div className="md:col-span-4 lg:col-span-4 space-y-5">
+              <div className="relative aspect-[2/3] w-full rounded bg-gradient-to-b from-stone-900 to-stone-950 border border-stone-800 p-6 shadow-md flex flex-col justify-between overflow-hidden">
+                <div className="absolute left-0 top-0 bottom-0 w-3.5 bg-black/30 border-r border-white/10" />
+                <div className="pl-3 flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-white/60">
+                    {doc.doc_type || 'edition'}
                   </span>
-                </>
-              )}
-              {venue && (
-                <>
-                  <span>•</span>
-                  <span className="text-slate-700 font-medium normal-case italic">{venue}</span>
-                </>
-              )}
-            </div>
-            <LicenseBadge license={doc.license} />
-          </div>
+                  <span className="text-[10px] font-mono text-white/40">{year || 'Archive'}</span>
+                </div>
 
-          {/* Title */}
-          <h1 className="text-3xl font-extrabold text-slate-900 leading-tight">
-            {doc.title}
-          </h1>
-
-          {/* Scholarly Identifiers & Authors */}
-          <div className="space-y-3 pt-1">
-            {/* Authors with ORCID badges */}
-            {authors.length > 0 && (
-              <div className="flex flex-wrap gap-2 items-center text-xs text-slate-700">
-                <span className="font-semibold text-slate-500">Authors:</span>
-                {authors.map((a: any, idx: number) => {
-                  const name = typeof a === 'string' ? a : a.name;
-                  const orcid = typeof a === 'object' ? a.orcid : null;
-                  return (
-                    <span key={idx} className="inline-flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-md border border-slate-200">
-                      <span>{name}</span>
-                      {orcid && (
-                        <a
-                          href={orcid.startsWith('http') ? orcid : `https://orcid.org/${orcid}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center text-[10px] text-emerald-600 hover:text-emerald-700 font-mono"
-                          title={`ORCID: ${orcid}`}
-                        >
-                          <Award className="w-3 h-3 text-emerald-500" />
-                        </a>
-                      )}
-                    </span>
-                  );
-                })}
+                <div className="pl-3 space-y-2">
+                  <h2 className="font-editorial text-xl sm:text-2xl font-bold text-white leading-snug drop-shadow-sm">
+                    {doc.title}
+                  </h2>
+                  {authors.length > 0 && (
+                    <p className="text-xs text-white/80 italic font-medium">
+                      By {authors.join(', ')}
+                    </p>
+                  )}
+                </div>
               </div>
-            )}
 
-            {/* Badges for DOI, PMID, PMCID, Citations */}
-            <div className="flex flex-wrap gap-2 text-xs">
-              {doi && (
-                <a
-                  href={`https://doi.org/${doi}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition font-mono text-[11px]"
+              {/* Action Buttons */}
+              <div className="space-y-2 pt-2">
+                <Link
+                  href={`/read/${doc.id}`}
+                  className="w-full py-3 px-4 rounded bg-library-accent text-white font-bold text-xs uppercase tracking-wider hover:bg-library-accent-hover transition flex items-center justify-center gap-2 shadow-sm"
                 >
-                  <Hash className="w-3 h-3" />
-                  <span>DOI: {doi}</span>
-                  <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
-                </a>
-              )}
+                  <BookOpen className="w-4 h-4" />
+                  <span>Read Online</span>
+                </Link>
 
-              {pmid && (
-                <a
-                  href={`https://pubmed.ncbi.nlm.nih.gov/${pmid}/`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition font-mono text-[11px]"
-                >
-                  <span>PMID: {pmid}</span>
-                  <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
-                </a>
-              )}
-
-              {pmcid && (
-                <a
-                  href={`https://www.ncbi.nlm.nih.gov/pmc/articles/${pmcid}/`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100 transition font-mono text-[11px]"
-                >
-                  <span>{pmcid}</span>
-                  <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
-                </a>
-              )}
-
-              {citedBy !== undefined && citedBy > 0 && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 font-semibold text-[11px]">
-                  <span>Cited by {citedBy.toLocaleString()}</span>
-                </span>
-              )}
-            </div>
-
-            {/* Topics / Concepts */}
-            {topics.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {topics.map((t: string) => (
-                  <span
-                    key={t}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px]"
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setCitationOpen(true)}
+                    className="py-2.5 px-3 rounded border border-library-border hover:bg-library-card text-xs font-semibold text-library-dark transition flex items-center justify-center gap-1.5"
                   >
-                    <Tag className="w-2.5 h-2.5 text-slate-400" />
-                    <span>{t}</span>
-                  </span>
-                ))}
+                    <Quote className="w-3.5 h-3.5 text-library-muted" />
+                    <span>Cite / Export</span>
+                  </button>
+
+                  {doc.url ? (
+                    <a
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-2.5 px-3 rounded border border-library-border hover:bg-library-card text-xs font-semibold text-library-dark transition flex items-center justify-center gap-1.5"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 text-library-muted" />
+                      <span>Original</span>
+                    </a>
+                  ) : (
+                    <button
+                      disabled
+                      className="py-2.5 px-3 rounded border border-library-border/50 text-xs font-medium text-library-muted opacity-50"
+                    >
+                      Repository
+                    </button>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
-
-          {/* Content Body */}
-          {doc.content && (
-            <div className="prose prose-slate max-w-none text-sm text-slate-700 leading-relaxed whitespace-pre-line border-t border-slate-100 pt-5">
-              {doc.content}
             </div>
-          )}
 
-          {/* Chunks preview if available */}
-          {doc.chunks && doc.chunks.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-slate-100 space-y-3">
-              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <Layers className="w-4 h-4 text-indigo-600" />
-                <span>Passage Chunks & Dense Vectors ({doc.chunks.length})</span>
-              </h3>
+            {/* Right Column: Bibliographic Details */}
+            <div className="md:col-span-8 lg:col-span-8 space-y-6">
               <div className="space-y-2">
-                {doc.chunks.map((chunk) => (
-                  <div
-                    key={chunk.chunk_index}
-                    className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600"
-                  >
-                    <span className="font-semibold text-slate-400 mr-2">
-                      Chunk #{chunk.chunk_index + 1}:
-                    </span>
-                    {chunk.text}
-                  </div>
-                ))}
+                <div className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-widest text-library-accent">
+                  <span>{doc.source}</span>
+                  <span>•</span>
+                  <span>{doc.doc_type}</span>
+                  <span>•</span>
+                  <span>{doc.license}</span>
+                </div>
+                <h1 className="font-editorial text-2xl sm:text-4xl font-extrabold text-library-dark leading-tight">
+                  {doc.title}
+                </h1>
+                {authors.length > 0 && (
+                  <p className="text-base text-library-secondary italic pt-1">
+                    By {authors.join(', ')}
+                  </p>
+                )}
               </div>
-            </div>
-          )}
 
-          {/* Provenance & External Links */}
-          <div className="pt-6 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
-            <div className="font-mono text-slate-400">
-              Source Record ID: {doc.source_id}
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setCitationOpen(true)}
-                className="inline-flex items-center gap-1 text-slate-600 hover:text-indigo-600 font-medium"
-              >
-                <Quote className="w-3.5 h-3.5 text-indigo-500" />
-                <span>Export Citation</span>
-              </button>
-              {doc.url && (
-                <a
-                  href={doc.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 font-semibold"
-                >
-                  <span>View Upstream Resource</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+              {/* Metadata Table */}
+              <div className="border border-library-border rounded-md bg-library-bg/60 p-4 divide-y divide-library-border/60 text-xs">
+                {year && (
+                  <div className="py-2 flex justify-between">
+                    <span className="text-library-muted uppercase tracking-wider font-semibold">Publication Year</span>
+                    <span className="font-mono font-medium text-library-dark">{year}</span>
+                  </div>
+                )}
+                <div className="py-2 flex justify-between">
+                  <span className="text-library-muted uppercase tracking-wider font-semibold">Language</span>
+                  <span className="capitalize font-medium text-library-dark">{doc.language || 'English'}</span>
+                </div>
+                <div className="py-2 flex justify-between">
+                  <span className="text-library-muted uppercase tracking-wider font-semibold">License Rights</span>
+                  <span className="font-medium text-library-dark">{doc.license}</span>
+                </div>
+                {meta.doi && (
+                  <div className="py-2 flex justify-between">
+                    <span className="text-library-muted uppercase tracking-wider font-semibold">Digital Object Identifier (DOI)</span>
+                    <span className="font-mono text-library-accent font-semibold">{meta.doi}</span>
+                  </div>
+                )}
+                {meta.venue && (
+                  <div className="py-2 flex justify-between">
+                    <span className="text-library-muted uppercase tracking-wider font-semibold">Journal / Venue</span>
+                    <span className="font-medium text-library-dark">{meta.venue}</span>
+                  </div>
+                )}
+                {doc.chunks && (
+                  <div className="py-2 flex justify-between">
+                    <span className="text-library-muted uppercase tracking-wider font-semibold">Indexed Passage Chunks</span>
+                    <span className="font-mono font-medium text-library-dark">{doc.chunks.length} sections</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Description / Summary Section */}
+              <div className="space-y-3 pt-2">
+                <h3 className="text-xs uppercase font-bold tracking-wider text-library-dark">
+                  About this Work
+                </h3>
+                <p className="text-sm text-library-secondary leading-relaxed whitespace-pre-line">
+                  {doc.content || 'No detailed synopsis provided for this record.'}
+                </p>
+              </div>
+
+              {/* Linked Knowledge Graph Entities */}
+              {doc.entities && doc.entities.length > 0 && (
+                <div className="space-y-3 pt-4 border-t border-library-border/80">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs uppercase font-bold tracking-wider text-library-dark">
+                      Resolved Entities & Authorities
+                    </h3>
+                    <Link href="/graph" className="text-xs text-library-accent font-bold hover:underline">
+                      Explore Graph →
+                    </Link>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {doc.entities.map((ent) => (
+                      <Link
+                        key={ent.id}
+                        href={`/entity/${ent.id}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-library-card border border-library-border hover:border-library-accent hover:text-library-accent transition text-xs"
+                      >
+                        <User className="w-3.5 h-3.5 text-library-muted" />
+                        <span className="font-semibold">{ent.name}</span>
+                        <span className="text-[10px] text-library-muted uppercase">({ent.role})</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>
-        </article>
-      </div>
+        </section>
+
+        {/* Section: Indexed Passages Preview */}
+        {doc.chunks && doc.chunks.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-baseline justify-between border-b border-library-border pb-3">
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-library-muted">
+                  Passage Chunks
+                </span>
+                <h2 className="font-editorial text-xl sm:text-2xl font-bold text-library-dark">
+                  Indexed Full-Text Sections ({doc.chunks.length})
+                </h2>
+              </div>
+              <Link
+                href={`/read/${doc.id}`}
+                className="text-xs uppercase font-bold text-library-accent hover:underline flex items-center gap-1"
+              >
+                <span>Read Full Document</span>
+                <span>→</span>
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {doc.chunks.slice(0, 4).map((chunk) => (
+                <div
+                  key={chunk.chunk_index}
+                  className="bg-white border border-library-border rounded-md p-5 space-y-2 hover:border-library-accent/60 transition"
+                >
+                  <span className="text-[10px] uppercase font-mono text-library-muted tracking-wider">
+                    Section #{chunk.chunk_index + 1}
+                  </span>
+                  <p className="text-xs text-library-secondary leading-relaxed line-clamp-4">
+                    {chunk.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </main>
 
       {/* Citation Modal */}
-      <CitationModal
-        documentId={doc.id}
-        documentTitle={doc.title}
-        isOpen={citationOpen}
-        onClose={() => setCitationOpen(false)}
-      />
-    </>
+      {citationOpen && (
+        <CitationModal
+          documentId={doc.id}
+          documentTitle={doc.title}
+          onClose={() => setCitationOpen(false)}
+        />
+      )}
+    </div>
   );
 }

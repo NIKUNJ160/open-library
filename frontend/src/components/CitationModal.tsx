@@ -7,7 +7,7 @@ import { X, Copy, Check, Quote, Loader2, AlertCircle } from 'lucide-react';
 interface CitationModalProps {
   documentId: string;
   documentTitle: string;
-  isOpen: boolean;
+  isOpen?: boolean;
   onClose: () => void;
 }
 
@@ -16,7 +16,7 @@ type CitationStyle = 'bibtex' | 'apa' | 'mla' | 'chicago';
 export const CitationModal: React.FC<CitationModalProps> = ({
   documentId,
   documentTitle,
-  isOpen,
+  isOpen = true,
   onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<CitationStyle>('bibtex');
@@ -88,34 +88,34 @@ export const CitationModal: React.FC<CitationModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-library-dark/60 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col"
+        className="w-full max-w-2xl bg-library-bg rounded-xl shadow-2xl border border-library-border overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-library-border bg-library-card">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
+            <div className="p-2 rounded-lg bg-library-accent/10 text-library-accent">
               <Quote className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">Export Academic Citation</h3>
-              <p className="text-xs text-slate-500 max-w-md truncate">{documentTitle}</p>
+              <h3 className="font-editorial text-lg font-bold text-library-dark">Export Citation</h3>
+              <p className="text-xs text-library-secondary max-w-md truncate">{documentTitle}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+            className="p-1.5 rounded-lg text-library-muted hover:text-library-dark hover:bg-library-border/50 transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Style Tabs */}
-        <div className="flex border-b border-slate-200 bg-slate-100/60 px-6 pt-3 gap-2">
+        <div className="flex border-b border-library-border bg-library-card/50 px-6 pt-3 gap-2">
           {tabs.map((tab) => (
             <button
               key={tab.key}
@@ -125,8 +125,8 @@ export const CitationModal: React.FC<CitationModalProps> = ({
               }}
               className={`px-4 py-2 text-xs font-semibold rounded-t-lg transition border-b-2 -mb-[2px] ${
                 activeTab === tab.key
-                  ? 'bg-white text-indigo-600 border-indigo-600 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 border-transparent'
+                  ? 'bg-library-bg text-library-accent border-library-accent shadow-xs'
+                  : 'text-library-secondary hover:text-library-dark border-transparent'
               }`}
             >
               {tab.label}
@@ -137,8 +137,8 @@ export const CitationModal: React.FC<CitationModalProps> = ({
         {/* Content Body */}
         <div className="p-6">
           {loading && (
-            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-              <Loader2 className="w-6 h-6 animate-spin text-indigo-600 mb-2" />
+            <div className="flex flex-col items-center justify-center py-12 text-library-muted">
+              <Loader2 className="w-6 h-6 animate-spin text-library-accent mb-2" />
               <p className="text-xs">Generating citation...</p>
             </div>
           )}
@@ -156,7 +156,7 @@ export const CitationModal: React.FC<CitationModalProps> = ({
           {!loading && !error && (
             <div>
               <div className="relative">
-                <pre className="p-4 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-64 border border-slate-800 select-all">
+                <pre className="p-4 rounded-xl bg-library-dark text-[#F7F5F0] font-mono text-xs overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-64 border border-stone-800 select-all">
                   {currentCitation || 'Citation not available for this format.'}
                 </pre>
               </div>
@@ -165,14 +165,14 @@ export const CitationModal: React.FC<CitationModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-3.5 bg-slate-50 border-t border-slate-100">
-          <span className="text-[11px] text-slate-400">
+        <div className="flex items-center justify-between px-6 py-3.5 bg-library-card border-t border-library-border">
+          <span className="text-[11px] text-library-muted">
             Open Library Scholarly Engine • Standards Compliant
           </span>
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-3.5 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-200/60 rounded-lg transition"
+              className="px-3.5 py-1.5 text-xs font-medium text-library-secondary hover:text-library-dark hover:bg-library-border/50 rounded-lg transition"
             >
               Close
             </button>
@@ -182,7 +182,7 @@ export const CitationModal: React.FC<CitationModalProps> = ({
               className={`inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-lg shadow-sm transition ${
                 copied
                   ? 'bg-emerald-600 text-white'
-                  : 'bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50'
+                  : 'bg-library-accent hover:bg-library-accent-hover text-white disabled:opacity-50'
               }`}
             >
               {copied ? (
