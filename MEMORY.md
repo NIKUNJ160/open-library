@@ -353,4 +353,30 @@ All 6 backend roadmap phases and the complete editorial book library frontend te
 - **Phase 4**: Conversational RAG with Citation-Grounded Streaming (`cef7584`).
 - **Phase 5**: Knowledge Graph Integration & Entity Resolution (`2ab1629`).
 - **Phase 6**: Production Hardening, Scaling, Caching, Ops & Deployment (`94c6f2b`).
-- **Frontend Template**: Full Editorial Book Library experience (India Library + Open Library + Bloomberg aesthetic) with 8 verified routes.
+- **Frontend Template**: Full Editorial Book Library experience (India Library + Open Library + Bloomberg aesthetic) with 8 verified routes (`c508540`).
+- **CI Pipeline Green**: Astral uv sync + virtualenv pytest execution in GitHub Actions (`6486503`).
+- **Vercel Production Deployment**: Fixed Root Directory to `frontend`, live at [https://open-library-beta.vercel.app](https://open-library-beta.vercel.app).
+
+---
+
+### Session 12: GitHub Actions CI Fix
+- **Issue**: CI failed with `6 errors during collection` on backend tests due to `uv pip install --system -e ".[dev]"` installing packages into system Python while `pytest` was invoked from a toolcache interpreter missing `sqlalchemy`.
+- **Fix**: Updated `.github/workflows/ci.yml` in commit `6486503` to:
+  - Install Python 3.12 explicitly.
+  - Run `uv sync --extra dev` into the virtualenv.
+  - Run `uv run alembic upgrade head || true` for migrations against the pgvector test container.
+  - Run `uv run pytest -v` inside the virtual environment.
+- **Verification**: GitHub Actions Run `#36179132553` completed with `status: completed` and `conclusion: success` across both Backend Test Suite & Lint and Frontend Build & Typecheck.
+
+---
+
+### Session 13: Vercel Deployment Troubleshooting & Resolution
+- **User Request**: `Vercel - Deployment has failed — run this Vercel CLI command: npx vercel inspect dpl_Aam5LpeaMbFCFcGypjBA2eqXwZiX --logs`.
+- **Diagnosis**: Vercel project `open-library` on account `nikunj19` was configured with `Root Directory: universal_search_engine/frontend-dashboard` (legacy path from before the architecture clean-up). Vercel aborted before starting build because that directory no longer existed.
+- **Resolution**:
+  - Updated Vercel project configuration via CLI: `npx vercel project update open-library --root-directory frontend --yes`.
+  - Triggered redeploy: `npx vercel redeploy dpl_Aam5LpeaMbFCFcGypjBA2eqXwZiX`.
+- **Verification**:
+  - Build finished in 1m with status Ready.
+  - Deployed to production alias: [https://open-library-beta.vercel.app](https://open-library-beta.vercel.app).
+  - Live HTTP validation confirmed full editorial book library template rendering with 200 OK.
