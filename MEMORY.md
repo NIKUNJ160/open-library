@@ -286,12 +286,44 @@ d:/sites/
 
 ---
 
-## 4. Next Milestone: Phase 6 (Production Hardening, Ops & Deployment)
+### Session 10: Phase 6 (Production Hardening, Scaling, Ops & Deployment)
+- **User Request**: `Phase 6` -> `proceid`.
+- **Actions Executed**:
+  1. **Dual-Layer Caching Engine (`backend/app/services/cache_service.py`)**:
+     - Distributed Redis client via `redis.asyncio` with deterministic MD5 key hashing.
+     - Transparent in-memory TTL LRU cache fallback: zero downtime or exceptions if Redis container is uninitialized or temporarily disconnected.
+     - Wired into `search_service.py`: caches search results for identical queries & filters (`CACHE_TTL_SEARCH=300s`).
+  2. **Security Hardening & Rate Limiting (`backend/app/core/security.py`)**:
+     - Sliding-window rate limiter per client IP (default 60 req/min) tracking timestamps within rolling 60s windows.
+     - Injects standard `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `Retry-After` headers; returns RFC-compliant HTTP 429 when threshold is reached.
+     - `SecurityHeadersMiddleware`: injects OWASP headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`).
+     - Registered in `backend/app/main.py`.
+  3. **Database Connection Pool Optimization & Health Monitoring**:
+     - `session.py`: Parameterized async engine pool (`DB_POOL_SIZE=15`, `DB_MAX_OVERFLOW=10`, `DB_POOL_TIMEOUT=30s`, `DB_POOL_RECYCLE=1800s`, `pool_pre_ping=True`).
+     - `health.py`: Enhanced `GET /api/v1/health` providing live component diagnostics for Database, pgvector extension, Redis Cache (or fallback), Embedding Engine readiness, and uptime.
+  4. **Production Multi-Stage Containerization & Reverse Proxy**:
+     - `backend/Dockerfile.prod`: Multi-stage build with Astral `uv`, non-root user `appuser`, multi-worker Uvicorn (`--workers 4`), and container healthcheck.
+     - `frontend/Dockerfile.prod`: Multi-stage build with Node 20 Alpine, standalone output mode, non-root `nextjs` user, and healthcheck.
+     - `nginx/nginx.conf`: Production reverse proxy configuration with gzip compression, API rate-limiting zones (`30r/s`), proxy buffer tuning, SSE streaming support for `/api/v1/ask`, and Next.js static asset caching.
+     - `docker-compose.prod.yml`: PostgreSQL with tuned pgvector memory parameters (`shared_buffers=512MB`, `work_mem=32MB`, `maintenance_work_mem=128MB`), Redis with persistent append-only logs and memory limits, backend, frontend, and Nginx.
+  5. **CI/CD Automation (`.github/workflows/ci.yml`)**:
+     - GitHub Actions workflow testing backend (`pgvector:pg16` + `redis:7-alpine` service containers, `pytest`) and frontend (`npm ci`, `npm run build`).
+  6. **Automated Verification**:
+     - Backend: **39/39 tests passed** via `uv run pytest` in 3.66s (`test_production.py` 7/7 passed, testing cache CRUD, TTL expiry, rate limiter sliding window, security headers, rate limit 429 backoff, and enhanced health checks).
+     - Frontend: `npm run build` compiled all **7 routes** in Next.js standalone mode with **0 TypeScript and ESLint errors**.
 
-1. **Production Hardening & Operations**:
-   - Connection pooling & transaction optimizations for high concurrency.
-   - Redis caching for search results, rerank scores, and graph queries.
-   - Docker Compose production configurations (`docker-compose.prod.yml`).
-   - Rate limiting and health check monitoring.
-2. **Frontend Custom Template Integration**:
-   - Awaiting user's custom frontend template upload to seamlessly integrate with modular backend endpoints and types.
+---
+
+## 4. Current Status & Next Milestone: Frontend Template Integration
+
+All 6 core roadmap phases are fully implemented, verified, and operational:
+- **Phase 0**: Scaffolding, Docker Compose, Database Schema, Next.js Foundation (`5146c5b`).
+- **Phase 1**: MVP Ingestion (Open Library & Wikipedia) & Hybrid Search with RRF (`542ed0e`).
+- **Phase 2**: Scholarly Corpus (OpenAlex, Crossref, Europe PMC) & Citation Engine (`13736d3`).
+- **Phase 3**: Dense Vector Optimization & Neural Cross-Encoder Reranker (`88dbe85`).
+- **Phase 4**: Conversational RAG with Citation-Grounded Streaming (`cef7584`).
+- **Phase 5**: Knowledge Graph Integration & Entity Resolution (`2ab1629`).
+- **Phase 6**: Production Hardening, Scaling, Caching, Ops & Deployment.
+
+**Next Action**:
+- Ready to receive and integrate the user's custom frontend template with the modular backend REST API endpoints and TypeScript interfaces.

@@ -12,8 +12,21 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/knowledge_engine"
     DATABASE_URL_SYNC: str = "postgresql://postgres:postgres@localhost:5432/knowledge_engine"
 
-    # Redis
+    # Database Connection Pool Settings
+    DB_POOL_SIZE: int = 15
+    DB_MAX_OVERFLOW: int = 10
+    DB_POOL_TIMEOUT: int = 30
+    DB_POOL_RECYCLE: int = 1800
+
+    # Redis & Cache Settings
     REDIS_URL: str = "redis://localhost:6379/0"
+    CACHE_ENABLED: bool = True
+    CACHE_TTL_SEARCH: int = 300  # 5 minutes
+    CACHE_TTL_GRAPH: int = 600   # 10 minutes
+
+    # Rate Limiting
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_PER_MINUTE: int = 60
 
     # CORS
     CORS_ORIGINS: List[str] = [

@@ -7,7 +7,9 @@ from sqlalchemy import select, or_, func, desc, text
 from app.models.document import KnowledgeDocument, DocumentChunk
 from app.services.embedding_service import embedding_service
 from app.services.rerank_service import rerank_service
+from app.services.cache_service import cache_service
 from app.schemas.search import SearchResultItem, SearchResponse
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +44,22 @@ class HybridSearchService:
         offset = (page - 1) * page_size
         clean_query = query.strip()
         query_pattern = f"%{clean_query}%"
+
+        # Check production cache
+        cache_key = cache_service.make_key(
+            "search",
+            query=clean_query,
+            doc_type=doc_type,
+            source=source,
+            page=page,
+            page_size=page_size,
+            enable_vector=enable_vector,
+            enable_rerank=enable_rerank
+        )
+        cached = await cache_service.get(cache_key)
+        if cached:
+            cached["search_time_ms"] = round((time.perf_counter() - start_time) * 1000, 2)
+            return SearchResponse(**cached)
 
         # 1. Text Search Candidates
         text_filters = [
@@ -223,7 +241,7 @@ class HybridSearchService:
 
         search_time_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
-        return SearchResponse(
+        resp = SearchResponse(
             query=clean_query,
             page=page,
             page_size=page_size,
@@ -232,5 +250,7 @@ class HybridSearchService:
             reranked=is_reranked,
             results=results
         )
+        await cache_service.set(cache_key, resp.model_dump(), ttl_seconds=settings.CACHE_TTL_SEARCH)
+        return resp
 
 hybrid_search_service = HybridSearchService()
