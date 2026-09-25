@@ -180,14 +180,40 @@ d:/sites/
 
 ---
 
-## 4. Next Milestone: Phase 2 (Scholarly Corpus & Metadata Enrichment)
+### Session 6: Phase 2 (Scholarly Corpus & Metadata Enrichment)
+- **User Request**: `phase 2` (approved implementation plan).
+- **Actions Executed**:
+  1. **Academic ETL Collectors (`backend/app/etl/`)**:
+     - `openalex.py`: Built `OpenAlexCollector` with inverted-index abstract unrolling, author & ORCID mapping, DOI normalization, and polite API client (`User-Agent` + `mailto`).
+     - `crossref.py`: Built `CrossrefCollector` with JATS XML tag stripping, container venue resolution, reference/citation counts, and polite client.
+     - `europepmc.py`: Built `EuropePMCCollector` with structured author parsing, PMID/PMCID mapping, OA detection, and full-text links.
+     - `__init__.py`: Exported all scholarly collectors.
+  2. **Academic Citation Service & Endpoints (`backend/app/services/` & `backend/app/api/v1/`)**:
+     - `citation_service.py`: Implemented `CitationService` generating valid `BibTeX`, `APA` (7th ed), `MLA` (9th ed), and `Chicago` (Author-Date) citations.
+     - `documents.py`: Added `GET /api/v1/documents/{document_id}/citation` (with style parameter validation) and `GET /api/v1/documents/{document_id}/citations`.
+     - `schemas/document.py`: Added `CitationResponse` and `AllCitationsResponse`.
+  3. **Sample Ingestion CLI (`backend/scripts/ingest_sample.py`)**:
+     - Added offline curated landmark scholarly datasets (*Attention Is All You Need*, *Deep Residual Learning*, *DNA Double Helix*, *CRISPR-Cas9*, *Hallmarks of Cancer*).
+     - Added `--source` options: `openalex`, `crossref`, `europepmc`, `scholarly`, `openlibrary`, `wikipedia`, `all`.
+  4. **Frontend Citation Modal & Scholarly UI**:
+     - `CitationModal.tsx`: Built multi-format citation exporter modal with live style tabs (BibTeX, APA, MLA, Chicago), syntax pre-block, and one-click copy to clipboard with active checkmark feedback.
+     - `SearchResultCard.tsx`: Integrated "Cite" button and DOI badge.
+     - `search/page.tsx`: Added faceted filtering for scholarly sources (`OpenAlex`, `Crossref`, `Europe PMC`) and document types (`Papers`, `Books`, `Articles`).
+     - `document/[id]/page.tsx`: Added rich academic metadata badges (DOI, PMID, PMCID, citations count, ORCID badges) and "Cite / Export" action.
+  5. **Automated Verification**:
+     - Backend: 18/18 tests passed via `uv run pytest` in 2.62s (`test_api.py`, `test_citation.py`, `test_embedding.py`, `test_etl.py`, `test_scholarly_etl.py`, `test_search.py`).
+     - Frontend: `npm run build` compiled all 5 Next.js routes with 0 TypeScript/ESLint errors.
 
-Tasks lined up for Phase 2:
-1. **Academic Sources Integration**:
-   - `backend/app/etl/openalex.py`: Ingest research works, authors with ORCID, and institutions.
-   - `backend/app/etl/crossref.py`: DOI metadata harvesting, venue resolution, and citations.
-   - `backend/app/etl/europepmc.py`: Biomedical open access papers and PubMed citations.
-2. **Metadata & Entity Deduplication**:
-   - Resolve duplicate entities across OpenAlex, Crossref, and Europe PMC via DOI and ORCID.
-3. **Faceted Filtering & Export**:
-   - Add filters for publication year range, peer-reviewed flags, and citation export formats (BibTeX, APA).
+---
+
+## 4. Next Milestone: Phase 3 (Dense Vector Optimization & Neural Reranking)
+
+Tasks lined up for Phase 3:
+1. **Cross-Encoder Neural Reranker**:
+   - Integrate a second-stage cross-encoder model (e.g. `bge-reranker-base` or `ms-marco-MiniLM-L-6-v2`) to re-score the top-50 hybrid search candidate pool.
+2. **HNSW & Index Tuning**:
+   - Optimize vector index parameters (`m=16`, `ef_construction=64`, `hnsw.ef_search=40`) in pgvector.
+3. **Hybrid Search Weight Calibration**:
+   - Allow dynamic parameterization of sparse BM25 vs dense vector weights and RRF constant $k$.
+4. **Latency Profiling & Performance Benchmarks**:
+   - Automated benchmark script measuring p50, p95, and p99 query latency.

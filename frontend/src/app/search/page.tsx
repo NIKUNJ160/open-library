@@ -48,6 +48,35 @@ function SearchContent() {
     };
   }, [query, sourceFilter, docTypeFilter]);
 
+  const buildFilterUrl = (newSource?: string, newDocType?: string) => {
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    
+    const src = newSource !== undefined ? newSource : sourceFilter;
+    if (src) params.set('source', src);
+
+    const dt = newDocType !== undefined ? newDocType : docTypeFilter;
+    if (dt) params.set('doc_type', dt);
+
+    return `/search?${params.toString()}`;
+  };
+
+  const sources = [
+    { label: 'All Sources', value: '' },
+    { label: 'Open Library', value: 'openlibrary' },
+    { label: 'Wikipedia', value: 'wikipedia' },
+    { label: 'OpenAlex', value: 'openalex' },
+    { label: 'Crossref', value: 'crossref' },
+    { label: 'Europe PMC', value: 'europepmc' },
+  ];
+
+  const docTypes = [
+    { label: 'All Types', value: '' },
+    { label: 'Research Papers', value: 'paper' },
+    { label: 'Books', value: 'book' },
+    { label: 'Encyclopedia Articles', value: 'article' },
+  ];
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Top Search Bar */}
@@ -58,32 +87,56 @@ function SearchContent() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Left Filters Sidebar */}
         <aside className="lg:col-span-1 space-y-6">
-          <div className="p-4 bg-white rounded-2xl border border-slate-200">
-            <div className="flex items-center gap-2 font-bold text-slate-800 text-sm mb-4">
+          <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-6">
+            <div className="flex items-center gap-2 font-bold text-slate-800 text-sm border-b border-slate-100 pb-3">
               <Filter className="w-4 h-4 text-indigo-600" />
-              <span>Filters</span>
+              <span>Refine Search</span>
             </div>
 
             {/* Source Filter */}
             <div className="space-y-2">
               <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Source
+                Knowledge Source
               </h4>
               <div className="space-y-1 text-sm">
-                {['All', 'Open Library', 'Wikipedia', 'OpenAlex', 'Europe PMC'].map((s) => {
-                  const val = s === 'All' ? '' : s.toLowerCase().replace(/\s+/g, '');
-                  const isSelected = sourceFilter === val;
+                {sources.map((s) => {
+                  const isSelected = sourceFilter === s.value;
                   return (
                     <a
-                      key={s}
-                      href={`/search?q=${encodeURIComponent(query)}${val ? `&source=${val}` : ''}`}
-                      className={`block px-2.5 py-1.5 rounded-lg transition ${
+                      key={s.label}
+                      href={buildFilterUrl(s.value, undefined)}
+                      className={`block px-2.5 py-1.5 rounded-lg transition text-xs font-medium ${
                         isSelected
                           ? 'bg-indigo-50 text-indigo-700 font-semibold'
                           : 'text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      {s}
+                      {s.label}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Document Type Filter */}
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Document Type
+              </h4>
+              <div className="space-y-1 text-sm">
+                {docTypes.map((dt) => {
+                  const isSelected = docTypeFilter === dt.value;
+                  return (
+                    <a
+                      key={dt.label}
+                      href={buildFilterUrl(undefined, dt.value)}
+                      className={`block px-2.5 py-1.5 rounded-lg transition text-xs font-medium ${
+                        isSelected
+                          ? 'bg-indigo-50 text-indigo-700 font-semibold'
+                          : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {dt.label}
                     </a>
                   );
                 })}

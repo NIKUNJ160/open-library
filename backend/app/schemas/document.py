@@ -30,3 +30,12 @@ class DocumentDetail(BaseModel):
     updated_at: datetime
     chunks: Optional[List[ChunkDetail]] = None
     entities: Optional[List[EntityMention]] = None
+
+class CitationResponse(BaseModel):
+    document_id: uuid.UUID
+    format: str
+    citation: str
+
+class AllCitationsResponse(BaseModel):
+    document_id: uuid.UUID
+    citations: Dict[str, str]
