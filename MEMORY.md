@@ -257,15 +257,41 @@ d:/sites/
 
 ---
 
-## 4. Next Milestone: Phase 5 (Knowledge Graph Integration & Entity Resolution)
+### Session 9: Phase 5 (Knowledge Graph Integration & Entity Resolution)
+- **User Request**: `Phase 5 approved, after finishing all phases i will uplode a frontend template`.
+- **Actions Executed**:
+  1. **Knowledge Graph & Entity Resolution Service (`backend/app/services/entity_service.py`)**:
+     - Deduplication & Canonicalization: resolves entities by persistent external identifiers (ORCID, Wikidata QIDs) and normalized name + entity type matching.
+     - Attribute Merging: enriches existing records with newly discovered aliases, descriptions, and source provenance without duplicates.
+     - Document Extraction: maps author entities (with ORCIDs), subject topics, and publisher/venue organizations from document metadata with semantic roles (`author`, `subject`, `publisher`, `mentioned`).
+     - Subgraph Traversal: constructs ego-centric subgraphs returning root node, connected document nodes, co-occurring entities, and typed directed edges.
+     - Global Overview: identifies highest-degree hubs across the knowledge graph.
+  2. **FastAPI Graph & Entity Endpoints (`backend/app/api/v1/entities.py` & `schemas/entity.py`)**:
+     - `GET /api/v1/entities`: Paginated entity search with name query `q`, type filter (`person`, `topic`, `org`), and linked document counts.
+     - `GET /api/v1/entities/{id}`: Entity profile with external identifiers (ORCID/Wikidata) and linked publications.
+     - `GET /api/v1/entities/{id}/graph`: Subgraph extraction endpoint.
+     - `GET /api/v1/graph/overview`: Global knowledge network hubs and connections.
+     - Registered in `backend/app/api/v1/router.py`.
+  3. **Ingestion & Backfill Automation (`backend/scripts/ingest_sample.py`)**:
+     - Connected `entity_service.extract_and_link_document(session, doc)` to sample ingestion CLI and added automated backfill for all existing corpus records.
+  4. **Frontend Interactive Graph Visualization & Pages (`frontend/`)**:
+     - `KnowledgeGraph.tsx`: Built interactive SVG network graph component with force relaxation physics, category color-coding (Person: emerald, Topic: purple, Org: amber, Document: blue), glowing root ring, smooth drag & pan, zoom controls, category filters, and rich hover tooltips.
+     - `entity/[id]/page.tsx`: Entity profile page featuring infobox, ORCID/Wikidata external badges, linked works count, tabbed view (Interactive Subgraph & Document Cards).
+     - `graph/page.tsx`: Global Graph Explorer with search bar, entity type filters, dual-mode switcher (Global Graph visualization vs. Entity Directory grid).
+     - `Header.tsx`: Added "Graph" link in navigation bar.
+     - Types & API: added entity and graph interfaces in `types.ts` and helper functions in `api.ts`.
+  5. **Automated Verification**:
+     - Backend: **32/32 tests passed** via `uv run pytest` in 4.51s (`test_entity.py` 6/6 passed, plus all existing suites).
+     - Frontend: `npm run build` compiled all **7 routes** (`/`, `/_not-found`, `/ask`, `/document/[id]`, `/entity/[id]`, `/graph`, `/search`) with **0 TypeScript and ESLint errors**.
 
-Tasks lined up for Phase 5:
-1. **Entity Linking & Extraction**:
-   - Extract entities (authors, institutions, concepts, chemicals, genes) from documents into `entities` and `document_entities` tables.
-   - Resolve duplicate entities across OpenAlex (ROR / ORCID), Wikidata (QID), Crossref, and PubMed.
-2. **Graph Traversal & Exploration API**:
-   - `GET /api/v1/entities/{id}`: Entity details, aliases, and connected documents.
-   - `GET /api/v1/entities/{id}/graph`: Co-occurrence graph of related entities and citations.
-3. **Interactive Knowledge Graph UI (`frontend/src/app/entity/`)**:
-   - Entity detail pages with infoboxes and linked publications.
-   - Interactive network graph visualization (nodes for authors/papers/topics, edges for authorship/citation/co-occurrence).
+---
+
+## 4. Next Milestone: Phase 6 (Production Hardening, Ops & Deployment)
+
+1. **Production Hardening & Operations**:
+   - Connection pooling & transaction optimizations for high concurrency.
+   - Redis caching for search results, rerank scores, and graph queries.
+   - Docker Compose production configurations (`docker-compose.prod.yml`).
+   - Rate limiting and health check monitoring.
+2. **Frontend Custom Template Integration**:
+   - Awaiting user's custom frontend template upload to seamlessly integrate with modular backend endpoints and types.

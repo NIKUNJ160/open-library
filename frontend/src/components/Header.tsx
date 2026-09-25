@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { BookOpen, Search, Sparkles, Database } from 'lucide-react';
+import { BookOpen, Search, Sparkles, Database, Network } from 'lucide-react';
 
 export const Header: React.FC = () => {
   return (
@@ -22,6 +22,10 @@ export const Header: React.FC = () => {
           <Link href="/search" className="hover:text-indigo-600 transition flex items-center gap-1.5">
             <Search className="w-4 h-4" />
             <span>Search</span>
+          </Link>
+          <Link href="/graph" className="hover:text-indigo-600 transition flex items-center gap-1.5">
+            <Network className="w-4 h-4" />
+            <span>Graph</span>
           </Link>
           <Link href="/ask" className="text-indigo-600 hover:text-indigo-700 font-semibold transition flex items-center gap-1.5">
             <Sparkles className="w-4 h-4" />

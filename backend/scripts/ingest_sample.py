@@ -10,6 +10,7 @@ from app.etl.openalex import OpenAlexCollector
 from app.etl.crossref import CrossrefCollector
 from app.etl.europepmc import EuropePMCCollector
 from app.models.document import KnowledgeDocument
+from app.services.entity_service import entity_service
 from sqlalchemy import select
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -457,8 +458,14 @@ async def seed_data(source: str = "all", limit: int = 5):
 
                 logger.info(f"Ingested Europe PMC paper: '{doc.title}' with {len(chunks)} chunks.")
 
+        # Extract and resolve knowledge graph entities for all ingested documents
+        logger.info("Resolving knowledge graph entities and links for documents...")
+        all_docs = (await session.execute(select(KnowledgeDocument))).scalars().all()
+        for doc in all_docs:
+            await entity_service.extract_and_link_document(session, doc)
+
         await session.commit()
-        logger.info("Database ingestion commit completed successfully.")
+        logger.info("Database ingestion and entity linking completed successfully.")
 
 def main():
     parser = argparse.ArgumentParser(description="Ingest sample public knowledge documents into database")
