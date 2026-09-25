@@ -1,6 +1,6 @@
 import uuid
 from typing import Dict, Any, Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 import httpx
 import logging
 from app.etl.base import BaseCollector
@@ -49,7 +49,7 @@ class WikipediaCollector(BaseCollector):
             content=content,
             doc_type="article",
             url=url,
-            published_at=datetime.utcnow(),
+            published_at=datetime.now(timezone.utc),
             language=raw_data.get("lang", "en"),
             license="CC BY-SA 3.0",
             metadata_json=metadata

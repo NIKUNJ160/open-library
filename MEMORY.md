@@ -157,15 +157,37 @@ d:/sites/
 
 ---
 
-## 4. Next Milestone: Phase 1 (MVP Core Ingestion & Hybrid Search)
+### Session 5: Phase 1 (MVP Core Ingestion & Hybrid Search)
+- **User Request**: `phase 1`.
+- **Actions Executed**:
+  1. **FastEmbed Dense Embedding Pipeline (`backend/app/services/embedding_service.py`)**:
+     - Integrated `FastEmbed` with `BAAI/bge-small-en-v1.5` (384 dimensions).
+     - Verified ONNX runtime embedding generation in Python 3.12 (passing test suite).
+  2. **ETL Ingestion Collectors (`backend/app/etl/`)**:
+     - `base.py`: Implemented sliding-window text chunker and batch passage embedding generator.
+     - `openlibrary.py`: Built parser for Open Library works, bibliographic authors, subjects, and sample API fetcher.
+     - `wikipedia.py`: Built parser for Wikipedia articles, HTML stripper, Wikidata entity references, and REST API fetcher.
+  3. **Hybrid Search Service with RRF (`backend/app/services/search_service.py`)**:
+     - Parallel retrieval: BM25/keyword matching on canonical documents + pgvector cosine similarity on chunks.
+     - Reciprocal Rank Fusion ($k=60$) blending sparse and dense rankings.
+  4. **FastAPI Route Enhancement**:
+     - Updated `GET /api/v1/search` to route queries to `hybrid_search_service.search`.
+  5. **Data Ingestion CLI Runner (`backend/scripts/ingest_sample.py`)**:
+     - Built CLI supporting online API sampling and offline curated seed datasets.
+  6. **Automated Testing & Frontend Verification**:
+     - Ran `uv run pytest`: 8/8 tests passed in 6.00s across `test_api.py`, `test_etl.py`, `test_embedding.py`, `test_search.py`.
+     - Verified Next.js 14 production build (`npm run build` completed with 0 errors).
 
-Tasks lined up for Phase 1:
-1. **ETL Base & Collectors**:
-   - `backend/app/etl/base.py`: Abstract collector class with batch chunking, hashing, and upsert logic.
-   - `backend/app/etl/openlibrary.py`: Open Library JSON reader/parser for works, authors, editions.
-   - `backend/app/etl/wikipedia.py`: Wikipedia extracts and Wikidata entity linker.
-2. **Data Ingestion Runner**:
-   - `backend/scripts/ingest_sample.py`: CLI to seed the database with sample works and articles.
-3. **Embedding Pipeline & Hybrid Search Service**:
-   - `backend/app/services/embedding_service.py`: Generates dense vectors using FastEmbed (`BAAI/bge-small-en-v1.5`).
-   - `backend/app/services/search_service.py`: Reciprocal Rank Fusion (RRF) combining BM25 full-text matching and pgvector cosine distance.
+---
+
+## 4. Next Milestone: Phase 2 (Scholarly Corpus & Metadata Enrichment)
+
+Tasks lined up for Phase 2:
+1. **Academic Sources Integration**:
+   - `backend/app/etl/openalex.py`: Ingest research works, authors with ORCID, and institutions.
+   - `backend/app/etl/crossref.py`: DOI metadata harvesting, venue resolution, and citations.
+   - `backend/app/etl/europepmc.py`: Biomedical open access papers and PubMed citations.
+2. **Metadata & Entity Deduplication**:
+   - Resolve duplicate entities across OpenAlex, Crossref, and Europe PMC via DOI and ORCID.
+3. **Faceted Filtering & Export**:
+   - Add filters for publication year range, peer-reviewed flags, and citation export formats (BibTeX, APA).
