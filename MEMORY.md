@@ -233,14 +233,39 @@ d:/sites/
 
 ---
 
-## 4. Next Milestone: Phase 4 (Conversational RAG with Citation-Grounded Streaming)
+### Session 8: Phase 4 (Conversational RAG with Citation-Grounded Streaming)
+- **User Request**: `start phase 4` (approved implementation plan).
+- **Actions Executed**:
+  1. **Citation-Grounded RAG Engine (`backend/app/services/rag_service.py`)**:
+     - Built `RAGService` with multi-provider LLM support (OpenAI `gpt-4o-mini`, Google Gemini `gemini-1.5-flash`, and intelligent local offline fallback).
+     - Context assembly: structures Stage-2 neural reranked passages into numbered blocks `[1]`, `[2]`, with titles, provenance, and license metadata.
+     - Strict anti-hallucination prompt: enforces that every claim must cite `[1]`, `[2]`, and instructs the model to refuse if the retrieved context lacks sufficient evidence.
+     - Real-time Server-Sent Events (SSE) streaming yielding `sources`, `token` deltas, and `done` events.
+  2. **FastAPI Endpoints (`backend/app/api/v1/ask.py`)**:
+     - Added `POST /api/v1/ask` supporting both JSON (`stream=False`) and SSE (`stream=True`).
+     - Added `GET /api/v1/ask` for standard browser `EventSource` consumption.
+     - Registered in `backend/app/api/v1/router.py`.
+  3. **Frontend Conversational Interface (`frontend/src/app/ask/`)**:
+     - Built conversational multi-turn chat UI with live streaming tokens and pulsing cursor.
+     - Interactive `CitationPill.tsx`: renders `[1]`, `[2]` citation tags with hover popovers displaying source title, snippet, license, and direct links to `/document/[id]`.
+     - Suggested questions chips (*"Transformer architecture"*, *"CRISPR-Cas9"*, *"General Relativity"*, *"Hallmarks of Cancer"*).
+     - Reference literature drawer showing cited passage cards.
+     - Navigation link added to `Header.tsx` ("Ask AI").
+  4. **Automated Verification**:
+     - Backend: **26/26 tests passed** via `uv run pytest` in 4.22s (`test_rag.py`, `test_rerank.py`, `test_scholarly_etl.py`, `test_citation.py`, `test_embedding.py`, `test_api.py`, `test_etl.py`, `test_search.py`).
+     - Frontend: `npm run build` compiled all 6 routes (`/`, `/_not-found`, `/ask`, `/document/[id]`, `/search`) with **0 TypeScript and ESLint errors**.
 
-Tasks lined up for Phase 4:
-1. **RAG Pipeline Engine**:
-   - `backend/app/services/rag_service.py`: Context assembly from top-k reranked passages with strict citation grounding `[1]`, `[2]`.
-   - Streaming LLM generation via Server-Sent Events (SSE) or WebSockets.
-2. **Context Compression & Hallucination Guardrails**:
-   - Anti-hallucination verification prompt; refusal to answer if grounding context is insufficient.
-3. **Conversational Chat Interface (`frontend/src/app/ask/`)**:
-   - Multi-turn conversation UI with real-time text streaming.
-   - Interactive inline citation pills linking directly to referenced source documents and passages.
+---
+
+## 4. Next Milestone: Phase 5 (Knowledge Graph Integration & Entity Resolution)
+
+Tasks lined up for Phase 5:
+1. **Entity Linking & Extraction**:
+   - Extract entities (authors, institutions, concepts, chemicals, genes) from documents into `entities` and `document_entities` tables.
+   - Resolve duplicate entities across OpenAlex (ROR / ORCID), Wikidata (QID), Crossref, and PubMed.
+2. **Graph Traversal & Exploration API**:
+   - `GET /api/v1/entities/{id}`: Entity details, aliases, and connected documents.
+   - `GET /api/v1/entities/{id}/graph`: Co-occurrence graph of related entities and citations.
+3. **Interactive Knowledge Graph UI (`frontend/src/app/entity/`)**:
+   - Entity detail pages with infoboxes and linked publications.
+   - Interactive network graph visualization (nodes for authors/papers/topics, edges for authorship/citation/co-occurrence).

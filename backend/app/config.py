@@ -25,11 +25,13 @@ class Settings(BaseSettings):
     EMBEDDING_PROVIDER: str = "fastembed"  # "fastembed" or "openai"
     EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"
     EMBEDDING_DIMENSION: int = 384
-    OPENAI_API_KEY: str = ""
 
     # LLM Settings for RAG
-    LLM_PROVIDER: str = "openai"
+    LLM_PROVIDER: str = "openai"  # "openai", "gemini", or "local"
     LLM_MODEL: str = "gpt-4o-mini"
+    OPENAI_API_KEY: str = ""
+    GEMINI_API_KEY: str = ""
+    LLM_TEMPERATURE: float = 0.2
 
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),

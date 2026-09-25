@@ -23,6 +23,10 @@ export const Header: React.FC = () => {
             <Search className="w-4 h-4" />
             <span>Search</span>
           </Link>
+          <Link href="/ask" className="text-indigo-600 hover:text-indigo-700 font-semibold transition flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4" />
+            <span>Ask AI</span>
+          </Link>
           <a
             href="http://localhost:8000/docs"
             target="_blank"
