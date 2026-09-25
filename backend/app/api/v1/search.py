@@ -15,11 +15,13 @@ async def search_documents(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(10, ge=1, le=100, description="Results per page"),
     enable_vector: bool = Query(True, description="Enable dense vector semantic search"),
+    enable_rerank: bool = Query(True, description="Enable second-stage neural cross-encoder reranking"),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Search indexed knowledge documents using Reciprocal Rank Fusion (RRF) hybrid search,
-    combining keyword full-text matching with dense vector semantic search.
+    Search indexed knowledge documents using two-stage Hybrid Search:
+    Stage 1: Fast candidate retrieval fusing BM25 keyword matching and pgvector HNSW dense search.
+    Stage 2: Neural cross-encoder reranking with sigmoid-normalized relevance scoring.
     """
     return await hybrid_search_service.search(
         db=db,
@@ -28,5 +30,6 @@ async def search_documents(
         source=source,
         page=page,
         page_size=page_size,
-        enable_vector=enable_vector
+        enable_vector=enable_vector,
+        enable_rerank=enable_rerank
     )

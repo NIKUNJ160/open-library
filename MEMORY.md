@@ -206,14 +206,41 @@ d:/sites/
 
 ---
 
-## 4. Next Milestone: Phase 3 (Dense Vector Optimization & Neural Reranking)
+### Session 7: Phase 3 (Dense Vector Optimization & Neural Reranking)
+- **User Request**: `Phase 3` (executed approved plan with safety mitigations).
+- **Actions Executed**:
+  1. **Neural Cross-Encoder Reranker (`backend/app/services/rerank_service.py`)**:
+     - Integrated `Xenova/ms-marco-MiniLM-L-6-v2` running 100% locally via FastEmbed ONNX runtime (80 MB, Apache-2.0).
+     - Non-blocking async execution using `asyncio.to_thread` to protect FastAPI's event loop from CPU-bound inference.
+     - Implemented numerically stable Sigmoid Normalization $\sigma(x) = \frac{1}{1 + e^{-x}}$ mapping raw logits to calibrated $[0.0, 1.0]$ confidence scores.
+     - Strict candidate cap (`rerank_top_k=20`) preventing compute runaway.
+  2. **HNSW Vector & Hybrid Pipeline Optimization (`backend/app/services/search_service.py`)**:
+     - Configured `SET LOCAL hnsw.ef_search = 40;` inside query transactions to maximize graph search recall safely without connection pool leakage.
+     - Two-stage architecture: Stage 1 RRF fusion (sparse BM25 + dense HNSW) generating top candidates; Stage 2 cross-encoder joint query-document re-scoring.
+     - Instrumented query latency timing (`search_time_ms`) and `reranked` status.
+  3. **FastAPI Search Route & Schemas**:
+     - Updated `GET /api/v1/search` with `enable_rerank: bool = Query(True)`.
+     - Updated `SearchResponse` schema with `search_time_ms` and `reranked`.
+  4. **Performance Benchmarking Suite (`backend/scripts/benchmark_search.py`)**:
+     - Benchmarks 10 evaluation queries across: Sparse BM25, Dense Vector HNSW, Hybrid RRF, and Two-Stage Hybrid + Neural Cross-Encoder.
+     - Measures mean, p50, p95, p99 latencies and throughput (QPS).
+  5. **Frontend Neural Rerank Toggle & Latency Badge (`frontend/`)**:
+     - Added interactive "Neural Rerank" toggle switch in the sidebar filter.
+     - Added search latency badge (e.g. `24.2 ms`) and "Neural Reranked" status indicator.
+     - Verified with Next.js 14 production build (`npm run build` compiled 5/5 routes with 0 errors).
+  6. **Automated Verification**:
+     - Ran `uv run pytest`: **22/22 tests passed** in 3.14s (`test_rerank.py`, `test_scholarly_etl.py`, `test_citation.py`, `test_embedding.py`, `test_api.py`, `test_etl.py`, `test_search.py`).
 
-Tasks lined up for Phase 3:
-1. **Cross-Encoder Neural Reranker**:
-   - Integrate a second-stage cross-encoder model (e.g. `bge-reranker-base` or `ms-marco-MiniLM-L-6-v2`) to re-score the top-50 hybrid search candidate pool.
-2. **HNSW & Index Tuning**:
-   - Optimize vector index parameters (`m=16`, `ef_construction=64`, `hnsw.ef_search=40`) in pgvector.
-3. **Hybrid Search Weight Calibration**:
-   - Allow dynamic parameterization of sparse BM25 vs dense vector weights and RRF constant $k$.
-4. **Latency Profiling & Performance Benchmarks**:
-   - Automated benchmark script measuring p50, p95, and p99 query latency.
+---
+
+## 4. Next Milestone: Phase 4 (Conversational RAG with Citation-Grounded Streaming)
+
+Tasks lined up for Phase 4:
+1. **RAG Pipeline Engine**:
+   - `backend/app/services/rag_service.py`: Context assembly from top-k reranked passages with strict citation grounding `[1]`, `[2]`.
+   - Streaming LLM generation via Server-Sent Events (SSE) or WebSockets.
+2. **Context Compression & Hallucination Guardrails**:
+   - Anti-hallucination verification prompt; refusal to answer if grounding context is insufficient.
+3. **Conversational Chat Interface (`frontend/src/app/ask/`)**:
+   - Multi-turn conversation UI with real-time text streaming.
+   - Interactive inline citation pills linking directly to referenced source documents and passages.

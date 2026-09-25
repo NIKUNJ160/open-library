@@ -6,13 +6,14 @@ import { searchDocuments } from '@/lib/api';
 import { SearchResponse } from '@/lib/types';
 import { SearchBar } from '@/components/SearchBar';
 import { SearchResultCard } from '@/components/SearchResultCard';
-import { Loader2, AlertCircle, Filter, BookOpen } from 'lucide-react';
+import { Loader2, AlertCircle, Filter, BookOpen, Zap, Sparkles } from 'lucide-react';
 
 function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
   const sourceFilter = searchParams.get('source') || '';
   const docTypeFilter = searchParams.get('doc_type') || '';
+  const enableRerank = searchParams.get('rerank') !== 'false';
 
   const [data, setData] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -32,6 +33,7 @@ function SearchContent() {
       q: query,
       source: sourceFilter || undefined,
       doc_type: docTypeFilter || undefined,
+      enable_rerank: enableRerank,
     })
       .then((res) => {
         if (isMounted) setData(res);
@@ -46,9 +48,9 @@ function SearchContent() {
     return () => {
       isMounted = false;
     };
-  }, [query, sourceFilter, docTypeFilter]);
+  }, [query, sourceFilter, docTypeFilter, enableRerank]);
 
-  const buildFilterUrl = (newSource?: string, newDocType?: string) => {
+  const buildFilterUrl = (newSource?: string, newDocType?: string, newRerank?: boolean) => {
     const params = new URLSearchParams();
     if (query) params.set('q', query);
     
@@ -57,6 +59,9 @@ function SearchContent() {
 
     const dt = newDocType !== undefined ? newDocType : docTypeFilter;
     if (dt) params.set('doc_type', dt);
+
+    const rr = newRerank !== undefined ? newRerank : enableRerank;
+    if (!rr) params.set('rerank', 'false');
 
     return `/search?${params.toString()}`;
   };
@@ -93,8 +98,36 @@ function SearchContent() {
               <span>Refine Search</span>
             </div>
 
+            {/* Neural Reranking Switch */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Neural Rerank</span>
+                </span>
+                <a
+                  href={buildFilterUrl(undefined, undefined, !enableRerank)}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                    enableRerank ? 'bg-indigo-600' : 'bg-slate-300'
+                  }`}
+                  title={enableRerank ? 'Disable neural cross-encoder' : 'Enable neural cross-encoder'}
+                >
+                  <span
+                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                      enableRerank ? 'translate-x-4' : 'translate-x-1'
+                    }`}
+                  />
+                </a>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                {enableRerank
+                  ? 'Stage 2 cross-encoder enabled'
+                  : 'Fast RRF candidate fusion only'}
+              </p>
+            </div>
+
             {/* Source Filter */}
-            <div className="space-y-2">
+            <div className="space-y-2 pt-2 border-t border-slate-100">
               <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Knowledge Source
               </h4>
@@ -104,7 +137,7 @@ function SearchContent() {
                   return (
                     <a
                       key={s.label}
-                      href={buildFilterUrl(s.value, undefined)}
+                      href={buildFilterUrl(s.value, undefined, undefined)}
                       className={`block px-2.5 py-1.5 rounded-lg transition text-xs font-medium ${
                         isSelected
                           ? 'bg-indigo-50 text-indigo-700 font-semibold'
@@ -129,7 +162,7 @@ function SearchContent() {
                   return (
                     <a
                       key={dt.label}
-                      href={buildFilterUrl(undefined, dt.value)}
+                      href={buildFilterUrl(undefined, dt.value, undefined)}
                       className={`block px-2.5 py-1.5 rounded-lg transition text-xs font-medium ${
                         isSelected
                           ? 'bg-indigo-50 text-indigo-700 font-semibold'
@@ -168,10 +201,24 @@ function SearchContent() {
 
           {!loading && !error && data && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-200">
-                <span>
-                  Showing {data.results.length} of {data.total} results for &quot;{data.query}&quot;
-                </span>
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 pb-2 border-b border-slate-200">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span>
+                    Showing {data.results.length} of {data.total} results for &quot;{data.query}&quot;
+                  </span>
+                  {data.search_time_ms !== undefined && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-mono text-[11px]">
+                      <Zap className="w-3 h-3 text-amber-500" />
+                      <span>{data.search_time_ms} ms</span>
+                    </span>
+                  )}
+                  {data.reranked && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold text-[11px]">
+                      <Sparkles className="w-3 h-3 text-indigo-500" />
+                      <span>Neural Reranked</span>
+                    </span>
+                  )}
+                </div>
                 <span>Page {data.page}</span>
               </div>
 

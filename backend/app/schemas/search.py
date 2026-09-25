@@ -20,4 +20,6 @@ class SearchResponse(BaseModel):
     page: int
     page_size: int
     total: int
+    search_time_ms: Optional[float] = None
+    reranked: bool = False
     results: List[SearchResultItem]

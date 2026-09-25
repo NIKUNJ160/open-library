@@ -1,18 +1,23 @@
 import uuid
+import time
 import logging
 from typing import List, Dict, Any, Optional, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, func, desc, text
 from app.models.document import KnowledgeDocument, DocumentChunk
 from app.services.embedding_service import embedding_service
+from app.services.rerank_service import rerank_service
 from app.schemas.search import SearchResultItem, SearchResponse
 
 logger = logging.getLogger(__name__)
 
 class HybridSearchService:
     """
-    Hybrid Search combining BM25 keyword matching and dense vector cosine similarity
-    using Reciprocal Rank Fusion (RRF).
+    Two-stage Hybrid Search Service:
+    - Stage 1: Fast candidate retrieval fusing BM25 keyword matching and pgvector HNSW
+      dense embeddings via Reciprocal Rank Fusion (RRF, k=60).
+    - Stage 2: High-precision neural cross-encoder reranking (Xenova/ms-marco-MiniLM-L-6-v2)
+      with sigmoid-normalized confidence scoring.
     """
 
     def __init__(self, rrf_k: int = 60):
@@ -26,11 +31,14 @@ class HybridSearchService:
         source: Optional[str] = None,
         page: int = 1,
         page_size: int = 10,
-        enable_vector: bool = True
+        enable_vector: bool = True,
+        enable_rerank: bool = True,
+        rerank_top_k: int = 20
     ) -> SearchResponse:
         """
-        Execute hybrid search over knowledge documents and passage chunks.
+        Execute two-stage hybrid search over knowledge documents and passage chunks.
         """
+        start_time = time.perf_counter()
         offset = (page - 1) * page_size
         clean_query = query.strip()
         query_pattern = f"%{clean_query}%"
@@ -65,9 +73,13 @@ class HybridSearchService:
 
         if enable_vector and clean_query:
             try:
+                # Optimize pgvector HNSW search recall within the local transaction
+                try:
+                    await db.execute(text("SET LOCAL hnsw.ef_search = 40;"))
+                except Exception:
+                    pass
+
                 query_vector = embedding_service.embed_query(clean_query)
-                # Check if pgvector is usable in this session
-                # Query nearest chunks using cosine distance
                 vec_stmt = (
                     select(
                         DocumentChunk.document_id,
@@ -94,7 +106,6 @@ class HybridSearchService:
                 logger.warning(f"Vector search bypassed or unavailable: {e}")
 
         # 3. Reciprocal Rank Fusion (RRF)
-        # RRF_Score(d) = sum(1 / (k + rank))
         rrf_scores: Dict[uuid.UUID, float] = {}
 
         for rank, doc_id in enumerate(text_ranked_ids, start=1):
@@ -103,22 +114,64 @@ class HybridSearchService:
         for rank, doc_id in enumerate(vector_ranked_ids, start=1):
             rrf_scores[doc_id] = rrf_scores.get(doc_id, 0.0) + (1.0 / (self.rrf_k + rank))
 
-        # Sort all matched doc IDs by fused RRF score
         sorted_doc_ids = sorted(rrf_scores.keys(), key=lambda d: rrf_scores[d], reverse=True)
         total = len(sorted_doc_ids)
 
-        # Slice for pagination
-        page_doc_ids = sorted_doc_ids[offset: offset + page_size]
-        if not page_doc_ids:
+        if not sorted_doc_ids:
+            search_time_ms = round((time.perf_counter() - start_time) * 1000, 2)
             return SearchResponse(
                 query=clean_query,
                 page=page,
                 page_size=page_size,
-                total=total,
+                total=0,
+                search_time_ms=search_time_ms,
+                reranked=False,
                 results=[]
             )
 
-        # Load full document details for page results
+        # 4. Stage-2 Neural Cross-Encoder Reranking
+        is_reranked = False
+        rerank_scores: Dict[uuid.UUID, float] = {}
+
+        if enable_rerank and clean_query and len(sorted_doc_ids) > 0:
+            top_candidates = sorted_doc_ids[:rerank_top_k]
+            tail_candidates = sorted_doc_ids[rerank_top_k:]
+
+            # Pre-fetch candidate documents for reranking
+            candidate_stmt = select(KnowledgeDocument).where(KnowledgeDocument.id.in_(top_candidates))
+            candidate_res = await db.execute(candidate_stmt)
+            candidate_docs = candidate_res.scalars().all()
+            candidate_map = {doc.id: doc for doc in candidate_docs}
+
+            # Prepare items to rerank
+            items_to_score = [candidate_map[did] for did in top_candidates if did in candidate_map]
+
+            def extract_doc_text(doc: KnowledgeDocument) -> str:
+                snippet = best_chunk_snippets.get(doc.id) or doc.content or doc.title
+                return f"{doc.title}. {snippet[:300]}"
+
+            try:
+                reranked_tuples = await rerank_service.rerank(
+                    query=clean_query,
+                    items=items_to_score,
+                    text_extractor=extract_doc_text
+                )
+
+                if reranked_tuples:
+                    reranked_ids = [doc.id for doc, _ in reranked_tuples]
+                    for doc, score in reranked_tuples:
+                        rerank_scores[doc.id] = score
+
+                    # Reconstruct final ranked list: reranked head + tail
+                    sorted_doc_ids = reranked_ids + tail_candidates
+                    is_reranked = True
+            except Exception as e:
+                logger.error(f"Neural rerank execution failed: {e}. Falling back to RRF.")
+
+        # 5. Pagination & Result Construction
+        page_doc_ids = sorted_doc_ids[offset: offset + page_size]
+
+        # Load document details
         docs_stmt = select(KnowledgeDocument).where(KnowledgeDocument.id.in_(page_doc_ids))
         docs_res = await db.execute(docs_stmt)
         docs_by_id = {doc.id: doc for doc in docs_res.scalars().all()}
@@ -146,7 +199,11 @@ class HybridSearchService:
             if doc.metadata_json and isinstance(doc.metadata_json, dict):
                 authors = doc.metadata_json.get("authors")
 
-            score = round(rrf_scores.get(doc_id, 0.0) * 100, 2)
+            # Final score: cross-encoder confidence percentage if reranked, else RRF score
+            if is_reranked and doc_id in rerank_scores:
+                score = round(rerank_scores[doc_id] * 100, 2)
+            else:
+                score = round(rrf_scores.get(doc_id, 0.0) * 100, 2)
 
             results.append(
                 SearchResultItem(
@@ -164,11 +221,15 @@ class HybridSearchService:
                 )
             )
 
+        search_time_ms = round((time.perf_counter() - start_time) * 1000, 2)
+
         return SearchResponse(
             query=clean_query,
             page=page,
             page_size=page_size,
             total=total,
+            search_time_ms=search_time_ms,
+            reranked=is_reranked,
             results=results
         )
 
