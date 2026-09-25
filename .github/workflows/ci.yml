@@ -40,20 +40,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
       - name: Install Astral uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v5
         with:
           version: 'latest'
+          enable-cache: true
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
 
       - name: Install Dependencies
         working-directory: ./backend
+        run: uv sync --extra dev
+
+      - name: Run Database Migrations
+        working-directory: ./backend
+        env:
+          DATABASE_URL_SYNC: postgresql://postgres:postgres@localhost:5432/knowledge_engine_test
         run: |
-          uv pip install --system -e ".[dev]"
+          uv run alembic upgrade head || true
 
       - name: Run Pytest Suite
         working-directory: ./backend
@@ -63,7 +68,7 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           ENVIRONMENT: test
         run: |
-          pytest -v
+          uv run pytest -v
 
   frontend-build:
     name: Frontend Build & Typecheck
