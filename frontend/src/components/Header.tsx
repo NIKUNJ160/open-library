@@ -81,10 +81,14 @@ export const Header: React.FC = () => {
         >
           <Search className="w-4 h-4 text-library-muted absolute left-3.5 pointer-events-none" />
           <input
-            type="text"
+            id="header-search-desktop"
+            name="q"
+            type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search books, authors, subjects, DOIs..."
+            aria-label="Search books, authors, subjects, and DOIs"
+            autoComplete="off"
             className="w-full bg-white border border-library-border rounded-md pl-10 pr-4 py-2 text-xs text-library-dark placeholder-library-muted focus:outline-none focus:border-library-accent focus:ring-1 focus:ring-library-accent transition"
           />
         </form>
@@ -141,10 +145,14 @@ export const Header: React.FC = () => {
           <form onSubmit={handleSearchSubmit} className="relative w-full">
             <Search className="w-4 h-4 text-library-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
-              type="text"
+              id="header-search-mobile"
+              name="q_mobile"
+              type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search catalog..."
+              aria-label="Search catalog"
+              autoComplete="off"
               className="w-full bg-white border border-library-border rounded-md pl-10 pr-4 py-2.5 text-sm text-library-dark focus:outline-none focus:border-library-accent"
             />
           </form>

@@ -405,3 +405,28 @@ All 6 backend roadmap phases and the complete editorial book library frontend te
   - Full contrast matrix mathematical verification passed 100% across all pairs (≥ 4.5:1 for normal text, ≥ 3:1 for large text / graphical components).
   - Frontend production build passed (`npm run build`: 8/8 routes generated with 0 errors).
   - Backend test suite passed (`39/39 passed` in 17.27s).
+
+---
+
+### Session 15: Form Field Unique ID and Name Attributes (Autofill & A11y Standards)
+- **User Request**:
+  > A form field element has neither an id nor a name attribute. This might stop the browser from correctly autofilling the form.
+  > To fix this issue, add a unique id or name attribute to a form field. This isn’t strictly needed, but still recommended even if you have an autocomplete attribute on the same element. 2 resources
+- **Audit Findings**:
+  - Full codebase scan identified all 6 `<input>` form fields across the Next.js frontend:
+    1. `frontend/src/components/Header.tsx` (Desktop search bar) — Missing `id` and `name` attributes.
+    2. `frontend/src/components/Header.tsx` (Mobile drawer search bar) — Missing `id` and `name` attributes. (The 2 resources flagged in Lighthouse audit as Header is on every page).
+    3. `frontend/src/app/page.tsx` (Hero search bar) — Missing `id` and `name` attributes.
+    4. `frontend/src/components/SearchBar.tsx` (Catalog search bar) — Missing `id` and `name` attributes.
+    5. `frontend/src/app/ask/page.tsx` (Ask AI chat prompt input) — Missing `id` and `name` attributes.
+    6. `frontend/src/app/graph/page.tsx` (Knowledge Graph entity search bar) — Missing `id` and `name` attributes.
+- **Remediation**:
+  - `Header.tsx` Desktop: Added `id="header-search-desktop"`, `name="q"`, `type="search"`, `aria-label="Search books, authors, subjects, and DOIs"`, `autoComplete="off"`.
+  - `Header.tsx` Mobile: Added `id="header-search-mobile"`, `name="q_mobile"`, `type="search"`, `aria-label="Search catalog"`, `autoComplete="off"`.
+  - `app/page.tsx` Hero: Added `id="hero-search-input"`, `name="q"`, `type="search"`, `aria-label="Search books, authors, subjects, ISBNs, or DOIs"`, `autoComplete="off"`.
+  - `components/SearchBar.tsx`: Added `id="catalog-search-input"`, `name="q"`, `type="search"`, `aria-label="Search books, research papers, and articles"`, `autoComplete="off"`.
+  - `app/ask/page.tsx`: Added `id="ask-query-input"`, `name="ask_query"`, `aria-label="Ask about research papers, books, biology, physics, philosophy"`, `autoComplete="off"`.
+  - `app/graph/page.tsx`: Added `id="graph-search-input"`, `name="graph_query"`, `type="search"`, `aria-label="Search entities in knowledge graph"`, `autoComplete="off"`.
+- **Verification**:
+  - Production build compiled with 0 errors (`npm run build`: 8/8 routes generated).
+

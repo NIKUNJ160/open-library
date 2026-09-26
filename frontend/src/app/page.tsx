@@ -152,10 +152,14 @@ export default function EditorialHomePage() {
           <form onSubmit={handleHeroSearch} className="relative shadow-sm">
             <Search className="w-5 h-5 text-library-muted absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
-              type="text"
+              id="hero-search-input"
+              name="q"
+              type="search"
               value={heroQuery}
               onChange={(e) => setHeroQuery(e.target.value)}
               placeholder="Search books, authors, subjects, ISBNs, or DOIs..."
+              aria-label="Search books, authors, subjects, ISBNs, or DOIs"
+              autoComplete="off"
               className="w-full bg-white border-2 border-library-border rounded-md pl-12 pr-32 py-4 text-sm sm:text-base text-library-dark placeholder-library-muted focus:outline-none focus:border-library-accent transition"
             />
             <button

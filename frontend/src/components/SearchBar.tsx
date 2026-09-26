@@ -42,10 +42,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           <Search className={isLarge ? 'w-5 h-5' : 'w-4 h-4'} />
         </div>
         <input
-          type="text"
+          id="catalog-search-input"
+          name="q"
+          type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search books, research papers, Wikipedia articles, or open datasets..."
+          aria-label="Search books, research papers, and articles"
+          autoComplete="off"
           className={`w-full bg-transparent text-library-dark placeholder:text-library-muted focus:outline-none ${
             isLarge ? 'py-4 pl-3 pr-28 text-base sm:text-lg' : 'py-2.5 pl-3 pr-24 text-sm'
           }`}

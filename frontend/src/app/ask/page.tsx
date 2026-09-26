@@ -288,10 +288,14 @@ export default function AskPage() {
               className="flex items-center gap-2"
             >
               <input
+                id="ask-query-input"
+                name="ask_query"
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about research papers, books, biology, physics, philosophy..."
+                aria-label="Ask about research papers, books, biology, physics, philosophy"
+                autoComplete="off"
                 disabled={isStreaming}
                 className="flex-1 px-4 py-2.5 rounded-lg border border-library-border bg-white text-sm text-library-dark placeholder:text-library-muted focus:outline-none focus:border-library-accent focus:ring-1 focus:ring-library-accent transition"
               />

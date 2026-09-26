@@ -93,10 +93,14 @@ export default function GlobalGraphPage() {
         <div className="relative w-full sm:max-w-md">
           <Search className="w-4 h-4 text-library-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
-            type="text"
+            id="graph-search-input"
+            name="graph_query"
+            type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search entities (e.g. Einstein, Attention, CRISPR)..."
+            aria-label="Search entities in knowledge graph"
+            autoComplete="off"
             className="w-full pl-10 pr-4 py-2 rounded-lg border border-library-border bg-library-card text-sm focus:outline-none focus:border-library-accent focus:ring-1 focus:ring-library-accent text-library-dark placeholder:text-library-muted transition"
           />
         </div>
