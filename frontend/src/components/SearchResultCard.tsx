@@ -36,7 +36,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({ item }) => {
     <>
       <article className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all duration-200">
         <div className="flex items-center justify-between gap-3 mb-2.5">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider flex-wrap">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 uppercase tracking-wider flex-wrap">
             <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100">
               {getSourceIcon(item.source)}
               <span>{item.source}</span>
@@ -63,25 +63,25 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({ item }) => {
         </h3>
 
         {item.authors && item.authors.length > 0 && (
-          <p className="text-xs text-slate-600 mb-2 font-medium">
+          <p className="text-xs text-slate-700 mb-2 font-medium">
             Authors: {item.authors.slice(0, 4).join(', ')}
             {item.authors.length > 4 ? ` et al.` : ''}
           </p>
         )}
 
-        <p className="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-3">
+        <p className="text-sm text-slate-700 leading-relaxed mb-4 line-clamp-3">
           {item.snippet}
         </p>
 
-        <div className="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">
+        <div className="flex items-center justify-between text-xs text-slate-700 pt-3 border-t border-slate-100">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-[11px] text-slate-400">ID: {item.source_id}</span>
+            <span className="font-mono text-[11px] text-slate-600">ID: {item.source_id}</span>
             <button
               onClick={() => setCitationOpen(true)}
-              className="inline-flex items-center gap-1 text-slate-600 hover:text-indigo-600 font-medium px-2 py-1 rounded-md hover:bg-slate-100 transition"
+              className="inline-flex items-center gap-1 text-slate-700 hover:text-indigo-700 font-medium px-2 py-1 rounded-md hover:bg-slate-100 transition"
               title="Export Citation"
             >
-              <Quote className="w-3.5 h-3.5 text-indigo-500" />
+              <Quote className="w-3.5 h-3.5 text-indigo-700" />
               <span>Cite</span>
             </button>
           </div>

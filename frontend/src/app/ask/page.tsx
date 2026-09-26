@@ -345,7 +345,7 @@ export default function AskPage() {
                         {getSourceIcon(s.source)}
                         <span>{s.source}</span>
                       </span>
-                      <span className="text-[9px] lowercase bg-stone-200/70 px-1.5 py-0.5 rounded truncate max-w-[80px]">
+                      <span className="text-[9px] lowercase bg-stone-200 text-stone-800 font-medium px-1.5 py-0.5 rounded truncate max-w-[80px]">
                         {s.license}
                       </span>
                     </div>

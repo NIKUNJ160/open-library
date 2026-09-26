@@ -80,7 +80,7 @@ export default function ReaderPage() {
       card: 'bg-[#212121]',
       border: 'border-[#333333]',
       text: 'text-[#EFECE5]',
-      secondary: 'text-[#A0A0A0]',
+      secondary: 'text-[#B8B4AE]',
       highlight: 'bg-[#8B1E2D] text-white',
     },
   }[theme];
@@ -116,24 +116,24 @@ export default function ReaderPage() {
           <div className={`flex items-center border ${themeStyles.border} rounded-md p-0.5 text-xs`}>
             <button
               onClick={() => setTheme('sepia')}
-              className={`px-2 py-1 rounded transition text-[11px] font-medium ${
-                theme === 'sepia' ? themeStyles.highlight : 'opacity-70 hover:opacity-100'
+              className={`px-2 py-1 rounded transition text-[11px] font-semibold ${
+                theme === 'sepia' ? themeStyles.highlight : `${themeStyles.secondary} hover:${themeStyles.text}`
               }`}
             >
               Sepia
             </button>
             <button
               onClick={() => setTheme('light')}
-              className={`px-2 py-1 rounded transition text-[11px] font-medium ${
-                theme === 'light' ? themeStyles.highlight : 'opacity-70 hover:opacity-100'
+              className={`px-2 py-1 rounded transition text-[11px] font-semibold ${
+                theme === 'light' ? themeStyles.highlight : `${themeStyles.secondary} hover:${themeStyles.text}`
               }`}
             >
               Light
             </button>
             <button
               onClick={() => setTheme('dark')}
-              className={`px-2 py-1 rounded transition text-[11px] font-medium ${
-                theme === 'dark' ? themeStyles.highlight : 'opacity-70 hover:opacity-100'
+              className={`px-2 py-1 rounded transition text-[11px] font-semibold ${
+                theme === 'dark' ? themeStyles.highlight : `${themeStyles.secondary} hover:${themeStyles.text}`
               }`}
             >
               Dark
@@ -251,7 +251,7 @@ export default function ReaderPage() {
               {/* Passage Content */}
               {chunks.length > 0 ? (
                 <div className={`space-y-6 ${fontSizeClasses}`}>
-                  <div className="flex items-center justify-between text-xs font-mono opacity-50 uppercase tracking-widest pb-2">
+                  <div className={`flex items-center justify-between text-xs font-mono font-medium ${themeStyles.secondary} uppercase tracking-widest pb-2`}>
                     <span>Section {activeChunkIndex + 1} of {chunks.length}</span>
                     <span>{progressPercent}% Complete</span>
                   </div>
@@ -279,7 +279,7 @@ export default function ReaderPage() {
                     <span>Previous Section</span>
                   </button>
 
-                  <span className="text-xs font-mono opacity-60">
+                  <span className={`text-xs font-mono font-medium ${themeStyles.secondary}`}>
                     {activeChunkIndex + 1} / {chunks.length}
                   </span>
 

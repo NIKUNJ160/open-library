@@ -41,7 +41,7 @@ export const BookCard: React.FC<BookCardProps> = ({ item, onCite }) => {
 
           {/* Top Tag & Bookmark Ribbon */}
           <div className="flex items-center justify-between pl-2">
-            <span className="text-[9px] uppercase font-bold tracking-widest text-white/70">
+            <span className="text-[9px] uppercase font-bold tracking-widest text-stone-200">
               {item.doc_type || 'work'}
             </span>
             <div className={`w-2 h-4 ${palette.ribbon} rounded-b-sm shadow-sm`} />
@@ -53,7 +53,7 @@ export const BookCard: React.FC<BookCardProps> = ({ item, onCite }) => {
               {item.title}
             </h3>
             {item.authors && item.authors.length > 0 && (
-              <p className="text-xs text-white/80 font-medium line-clamp-1 italic">
+              <p className="text-xs text-stone-200 font-medium line-clamp-1 italic">
                 {item.authors.join(', ')}
               </p>
             )}
@@ -89,7 +89,7 @@ export const BookCard: React.FC<BookCardProps> = ({ item, onCite }) => {
           )}
 
           {item.snippet && (
-            <p className="text-xs text-library-secondary/80 line-clamp-2 leading-relaxed pt-0.5">
+            <p className="text-xs text-library-secondary line-clamp-2 leading-relaxed pt-0.5">
               {item.snippet}
             </p>
           )}

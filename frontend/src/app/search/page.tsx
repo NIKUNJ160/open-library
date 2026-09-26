@@ -135,8 +135,8 @@ function SearchContent() {
                   href={buildFilterUrl(undefined, undefined, !enableRerank)}
                   className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded transition ${
                     enableRerank
-                      ? 'bg-library-accent text-white'
-                      : 'bg-library-border text-library-muted'
+                      ? 'bg-library-accent text-white shadow-xs'
+                      : 'bg-library-card border border-library-border text-library-dark hover:border-library-dark'
                   }`}
                 >
                   {enableRerank ? 'Active' : 'Off'}

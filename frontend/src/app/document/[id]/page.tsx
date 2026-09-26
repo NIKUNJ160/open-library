@@ -96,10 +96,10 @@ export default function DocumentPage() {
               <div className="relative aspect-[2/3] w-full rounded bg-gradient-to-b from-stone-900 to-stone-950 border border-stone-800 p-6 shadow-md flex flex-col justify-between overflow-hidden">
                 <div className="absolute left-0 top-0 bottom-0 w-3.5 bg-black/30 border-r border-white/10" />
                 <div className="pl-3 flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-white/60">
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-stone-300">
                     {doc.doc_type || 'edition'}
                   </span>
-                  <span className="text-[10px] font-mono text-white/40">{year || 'Archive'}</span>
+                  <span className="text-[10px] font-mono text-stone-300">{year || 'Archive'}</span>
                 </div>
 
                 <div className="pl-3 space-y-2">
@@ -107,7 +107,7 @@ export default function DocumentPage() {
                     {doc.title}
                   </h2>
                   {authors.length > 0 && (
-                    <p className="text-xs text-white/80 italic font-medium">
+                    <p className="text-xs text-stone-200 italic font-medium">
                       By {authors.join(', ')}
                     </p>
                   )}

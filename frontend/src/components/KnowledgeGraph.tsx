@@ -339,18 +339,18 @@ export const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({
                   y1={src.y}
                   x2={tgt.x}
                   y2={tgt.y}
-                  stroke="#334155"
+                  stroke="#64748b"
                   strokeWidth="1.5"
-                  strokeOpacity="0.8"
+                  strokeOpacity="0.85"
                 />
                 {edge.label && (
                   <text
                     x={midX}
                     y={midY - 4}
-                    fill="#64748b"
+                    fill="#94a3b8"
                     fontSize="9"
                     textAnchor="middle"
-                    className="font-medium pointer-events-none select-none"
+                    className="font-semibold pointer-events-none select-none"
                   >
                     {edge.label}
                   </text>
