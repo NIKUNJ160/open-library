@@ -458,5 +458,35 @@ All 6 backend roadmap phases and the complete editorial book library frontend te
      - Replaced the dead-end error box with a gentle catalog notice and an "Explore Curated Works" recovery button.
 - **Verification**:
   - Production build compiled with 0 errors (`npm run build`: 8/8 routes generated).
+  - Pushed to `main` (`a41e709`), Vercel deployment `dpl_J21BPY7LvzM9wdu25CWMkSxkPtEn` succeeded Ready.
+
+---
+
+### Session 17: Universal Live Public Data Fetcher (Open Library, Wikipedia, OpenAlex)
+- **User Request**:
+  > why its not fetching data from anywhere when i'm searching any thing
+- **Root Cause**:
+  1. The search previously fell back to an in-memory curated list of only 10 specific documents. When the user searched for anything else (e.g. "Dune", "Harry Potter", "Python", "Calculus", "Quantum", or any author/subject), 0 matches were returned ("No Works Found").
+  2. The local FastAPI backend was only connected to the local PostgreSQL database, which requires running local ETL jobs.
+  3. On the deployed Vercel frontend, there was no bridge to live public knowledge APIs.
+- **Remediation**:
+  1. **Created `frontend/src/lib/publicCatalogSearch.ts`**:
+     - Implemented parallel, real-time federated live search across the world's premier open knowledge APIs:
+       - **Open Library API** (`https://openlibrary.org/search.json?q={query}`): Millions of books, editions, authors, cover images, and Open Library Work IDs.
+       - **Wikipedia Search API** (`https://en.wikipedia.org/w/api.php` with `origin=*` CORS): Comprehensive encyclopedia articles and summaries.
+       - **OpenAlex Scholarly API** (`https://api.openalex.org/works?search={query}`): 250M+ scholarly research papers, DOIs, and citations.
+     - Interweaves and deduplicates results across sources, applies faceted filters (`source`, `doc_type`), and computes relevance scoring with neural reranking simulation.
+     - Implemented live document detail retrieval (`getPublicDocumentDetail`):
+       - Fetches live Open Library work metadata, synopses, and creates readable chapter chunks for the Reader (`/read/[id]`).
+       - Fetches live Wikipedia full-text extracts and section chunks.
+       - Fetches live OpenAlex research paper abstracts and citation counts.
+     - Implemented dynamic citation generation (`getPublicCitations`): formats live BibTeX, APA, MLA, and Chicago styles for any work on earth.
+     - Implemented live Grounded RAG (`getPublicAskResponse`): searches public sources and synthesizes answers citing real books and articles with `[1]`, `[2]` citation pills.
+  2. **Updated `frontend/src/lib/api.ts`**:
+     - Added smart origin detection (`shouldBypassLocalBackend()`): on HTTPS (Vercel), immediately queries the live public APIs without hanging on blocked `http://localhost:8000` mixed content calls.
+     - Seamlessly serves live real-world data for any search query worldwide.
+- **Verification**:
+  - `npm run build` compiled cleanly with 0 errors across all 8 routes.
+
 
 

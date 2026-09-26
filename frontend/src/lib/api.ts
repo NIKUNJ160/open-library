@@ -11,16 +11,24 @@ import {
   GraphResponse,
 } from './types';
 import {
-  searchCuratedCatalog,
-  getCuratedDocumentDetail,
-  getCuratedCitations,
+  searchPublicCatalog,
+  getPublicDocumentDetail,
+  getPublicCitations,
+  getPublicAskResponse,
+} from './publicCatalogSearch';
+import {
   getCuratedEntitiesList,
   getCuratedEntityDetail,
   getCuratedGraphData,
-  synthesizeCuratedAnswer,
 } from './curatedCatalog';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+
+// Detect if running in browser under HTTPS while backend is insecure localhost (Mixed Content)
+function shouldBypassLocalBackend(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.location.protocol === 'https:' && API_BASE.startsWith('http://localhost');
+}
 
 export async function searchDocuments(params: {
   q: string;
@@ -30,130 +38,123 @@ export async function searchDocuments(params: {
   page_size?: number;
   enable_rerank?: boolean;
 }): Promise<SearchResponse> {
-  try {
-    const query = new URLSearchParams();
-    query.set('q', params.q);
-    if (params.source) query.set('source', params.source);
-    if (params.doc_type) query.set('doc_type', params.doc_type);
-    if (params.page) query.set('page', params.page.toString());
-    if (params.page_size) query.set('page_size', params.page_size.toString());
-    if (params.enable_rerank !== undefined) query.set('enable_rerank', params.enable_rerank.toString());
+  // If in browser on HTTPS pointing to localhost, bypass to prevent browser mixed-content blockage
+  if (!shouldBypassLocalBackend()) {
+    try {
+      const query = new URLSearchParams();
+      query.set('q', params.q);
+      if (params.source) query.set('source', params.source);
+      if (params.doc_type) query.set('doc_type', params.doc_type);
+      if (params.page) query.set('page', params.page.toString());
+      if (params.page_size) query.set('page_size', params.page_size.toString());
+      if (params.enable_rerank !== undefined) query.set('enable_rerank', params.enable_rerank.toString());
 
-    // 3.5s timeout prevents UI hangs if remote backend is offline or mixed content is blocked
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
 
-    const res = await fetch(`${API_BASE}/search?${query.toString()}`, {
-      cache: 'no-store',
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+      const res = await fetch(`${API_BASE}/search?${query.toString()}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      throw new Error(`Search failed with status ${res.status}`);
+      if (res.ok) {
+        const data = await res.json();
+        // If local backend returned records, return them
+        if (data && data.results && data.results.length > 0) {
+          return data;
+        }
+      }
+    } catch (err) {
+      // Backend offline or unreachable
     }
-
-    return await res.json();
-  } catch (err) {
-    console.warn(`[Knowledge Engine API] Primary search unreachable (${API_BASE}), serving from curated public catalog:`, err);
-    return searchCuratedCatalog(params);
   }
+
+  // Live federated search across Open Library, Wikipedia, and OpenAlex
+  return await searchPublicCatalog(params);
 }
 
 export async function getDocument(id: string): Promise<DocumentDetail> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
+  if (!shouldBypassLocalBackend()) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
 
-    const res = await fetch(`${API_BASE}/documents/${id}`, {
-      cache: 'no-store',
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+      const res = await fetch(`${API_BASE}/documents/${id}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      throw new Error(`Failed to load document: ${res.statusText}`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) {
+      // Backend unreachable
     }
-
-    return await res.json();
-  } catch (err) {
-    console.warn(`[Knowledge Engine API] Document fetch failed (${id}), serving from curated catalog:`, err);
-    return getCuratedDocumentDetail(id);
   }
+
+  // Fetch live document details from Open Library, Wikipedia, or OpenAlex
+  return await getPublicDocumentDetail(id);
 }
 
 export async function getDocumentCitations(id: string): Promise<AllCitationsResponse> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
+  if (!shouldBypassLocalBackend()) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
 
-    const res = await fetch(`${API_BASE}/documents/${id}/citations`, {
-      cache: 'no-store',
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+      const res = await fetch(`${API_BASE}/documents/${id}/citations`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      throw new Error(`Failed to load citations: ${res.statusText}`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) {
+      // Backend unreachable
     }
-
-    return await res.json();
-  } catch (err) {
-    console.warn(`[Knowledge Engine API] Citations fetch failed (${id}), generating citations from curated catalog:`, err);
-    return getCuratedCitations(id);
   }
+
+  return await getPublicCitations(id);
 }
 
 export async function getDocumentCitation(id: string, format: string = 'bibtex'): Promise<CitationResponse> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
-
-    const res = await fetch(`${API_BASE}/documents/${id}/citation?format=${encodeURIComponent(format)}`, {
-      cache: 'no-store',
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      throw new Error(`Failed to load citation: ${res.statusText}`);
-    }
-
-    return await res.json();
-  } catch (err) {
-    const all = getCuratedCitations(id);
-    const key = format.toLowerCase();
-    const citation = all.citations[key] || all.citations['bibtex'] || '';
-    return {
-      document_id: id,
-      format,
-      citation,
-    };
-  }
+  const all = await getDocumentCitations(id);
+  const key = format.toLowerCase();
+  const citation = all.citations[key] || all.citations['bibtex'] || '';
+  return {
+    document_id: id,
+    format,
+    citation,
+  };
 }
 
 export async function askQuestion(req: AskRequest): Promise<AskResponse> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+  if (!shouldBypassLocalBackend()) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-    const res = await fetch(`${API_BASE}/ask`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...req, stream: false }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+      const res = await fetch(`${API_BASE}/ask`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...req, stream: false }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      throw new Error(`Failed to ask question: ${res.statusText}`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) {
+      // Backend unreachable
     }
-
-    return await res.json();
-  } catch (err) {
-    console.warn(`[Knowledge Engine API] RAG endpoint unreachable, synthesizing grounded answer from curated catalog:`, err);
-    return synthesizeCuratedAnswer(req.question);
   }
+
+  return await getPublicAskResponse(req.question);
 }
 
 export async function streamAskQuestion(
@@ -170,61 +171,61 @@ export async function streamAskQuestion(
   const abortController = new AbortController();
 
   (async () => {
-    try {
-      const res = await fetch(`${API_BASE}/ask`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, top_k, stream: true }),
-        signal: abortController.signal,
-      });
+    if (!shouldBypassLocalBackend()) {
+      try {
+        const res = await fetch(`${API_BASE}/ask`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question, top_k, stream: true }),
+          signal: abortController.signal,
+        });
 
-      if (!res.ok) {
-        throw new Error(`RAG stream HTTP status ${res.status}`);
-      }
+        if (res.ok && res.body) {
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder('utf-8');
+          let buffer = '';
 
-      if (!res.body) {
-        throw new Error('Response body is null');
-      }
+          while (true) {
+            if (isCancelled) break;
+            const { value, done } = await reader.read();
+            if (done) break;
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let buffer = '';
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
 
-      while (true) {
-        if (isCancelled) break;
-        const { value, done } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('data: ')) {
-            const dataStr = trimmed.slice(6);
-            try {
-              const parsed = JSON.parse(dataStr);
-              if (parsed.event === 'sources' && callbacks.onSources) {
-                callbacks.onSources(parsed.sources || []);
-              } else if (parsed.event === 'token' && callbacks.onToken) {
-                callbacks.onToken(parsed.token || '');
-              } else if (parsed.event === 'done' && callbacks.onDone) {
-                callbacks.onDone();
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (trimmed.startsWith('data: ')) {
+                const dataStr = trimmed.slice(6);
+                try {
+                  const parsed = JSON.parse(dataStr);
+                  if (parsed.event === 'sources' && callbacks.onSources) {
+                    callbacks.onSources(parsed.sources || []);
+                  } else if (parsed.event === 'token' && callbacks.onToken) {
+                    callbacks.onToken(parsed.token || '');
+                  } else if (parsed.event === 'done' && callbacks.onDone) {
+                    callbacks.onDone();
+                  }
+                } catch (err) {
+                  // Ignore non-json lines
+                }
               }
-            } catch (err) {
-              // Ignore non-json lines
             }
           }
+          if (callbacks.onDone) callbacks.onDone();
+          return;
         }
+      } catch (err: any) {
+        if (err.name === 'AbortError' || isCancelled) return;
       }
-      if (callbacks.onDone) callbacks.onDone();
-    } catch (err: any) {
-      if (err.name === 'AbortError' || isCancelled) return;
+    }
 
-      console.warn(`[Knowledge Engine API] Streaming endpoint unreachable, streaming local curated synthesis:`, err);
-      // Seamlessly stream synthesized answer with citations
-      const synth = synthesizeCuratedAnswer(question);
+    // Live public synthesis using Open Library and Wikipedia
+    try {
+      const synth = await getPublicAskResponse(question);
+      if (isCancelled) return;
+
       if (callbacks.onSources) {
         callbacks.onSources(synth.sources);
       }
@@ -246,6 +247,8 @@ export async function streamAskQuestion(
           if (callbacks.onDone) callbacks.onDone();
         }
       }, 25);
+    } catch (e: any) {
+      if (callbacks.onError) callbacks.onError(e);
     }
   })();
 
@@ -261,124 +264,128 @@ export async function getEntities(params?: {
   page?: number;
   page_size?: number;
 }): Promise<EntityListResponse> {
-  try {
-    const query = new URLSearchParams();
-    if (params?.q) query.set('q', params.q);
-    if (params?.entity_type) query.set('entity_type', params.entity_type);
-    if (params?.page) query.set('page', params.page.toString());
-    if (params?.page_size) query.set('page_size', params.page_size.toString());
+  if (!shouldBypassLocalBackend()) {
+    try {
+      const query = new URLSearchParams();
+      if (params?.q) query.set('q', params.q);
+      if (params?.entity_type) query.set('entity_type', params.entity_type);
+      if (params?.page) query.set('page', params.page.toString());
+      if (params?.page_size) query.set('page_size', params.page_size.toString());
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
 
-    const res = await fetch(`${API_BASE}/entities?${query.toString()}`, {
-      cache: 'no-store',
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+      const res = await fetch(`${API_BASE}/entities?${query.toString()}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      throw new Error(`Failed to load entities: ${res.statusText}`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) {
+      // Backend unreachable
     }
-
-    return await res.json();
-  } catch (err) {
-    console.warn(`[Knowledge Engine API] Entities endpoint unreachable, serving curated entities:`, err);
-    return getCuratedEntitiesList(params);
   }
+
+  return getCuratedEntitiesList(params);
 }
 
 export async function getEntity(id: number): Promise<EntityDetail> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
+  if (!shouldBypassLocalBackend()) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
 
-    const res = await fetch(`${API_BASE}/entities/${id}`, {
-      cache: 'no-store',
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+      const res = await fetch(`${API_BASE}/entities/${id}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      throw new Error(`Failed to load entity: ${res.statusText}`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) {
+      // Backend unreachable
     }
-
-    return await res.json();
-  } catch (err) {
-    console.warn(`[Knowledge Engine API] Entity detail unreachable (${id}), serving curated entity:`, err);
-    return getCuratedEntityDetail(id);
   }
+
+  return getCuratedEntityDetail(id);
 }
 
 export async function getEntityGraph(
   id: number,
   params?: { max_docs?: number; max_co_entities?: number }
 ): Promise<GraphResponse> {
-  try {
-    const query = new URLSearchParams();
-    if (params?.max_docs) query.set('max_docs', params.max_docs.toString());
-    if (params?.max_co_entities) query.set('max_co_entities', params.max_co_entities.toString());
+  if (!shouldBypassLocalBackend()) {
+    try {
+      const query = new URLSearchParams();
+      if (params?.max_docs) query.set('max_docs', params.max_docs.toString());
+      if (params?.max_co_entities) query.set('max_co_entities', params.max_co_entities.toString());
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
 
-    const res = await fetch(`${API_BASE}/entities/${id}/graph?${query.toString()}`, {
-      cache: 'no-store',
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+      const res = await fetch(`${API_BASE}/entities/${id}/graph?${query.toString()}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      throw new Error(`Failed to load entity graph: ${res.statusText}`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) {
+      // Backend unreachable
     }
-
-    return await res.json();
-  } catch (err) {
-    console.warn(`[Knowledge Engine API] Entity graph unreachable (${id}), serving curated graph:`, err);
-    const fullGraph = getCuratedGraphData();
-    const entityNodeId = `ent-${id}`;
-    const relevantEdges = fullGraph.edges.filter(
-      (e) => e.source === entityNodeId || e.target === entityNodeId
-    );
-    const nodeIds = new Set<string>([entityNodeId]);
-    relevantEdges.forEach((e) => {
-      nodeIds.add(e.source);
-      nodeIds.add(e.target);
-    });
-    const relevantNodes = fullGraph.nodes.filter((n) => nodeIds.has(n.id));
-    return {
-      root_id: entityNodeId,
-      nodes: relevantNodes.length > 0 ? relevantNodes : fullGraph.nodes.slice(0, 8),
-      edges: relevantEdges,
-    };
   }
+
+  const fullGraph = getCuratedGraphData();
+  const entityNodeId = `ent-${id}`;
+  const relevantEdges = fullGraph.edges.filter(
+    (e) => e.source === entityNodeId || e.target === entityNodeId
+  );
+  const nodeIds = new Set<string>([entityNodeId]);
+  relevantEdges.forEach((e) => {
+    nodeIds.add(e.source);
+    nodeIds.add(e.target);
+  });
+  const relevantNodes = fullGraph.nodes.filter((n) => nodeIds.has(n.id));
+  return {
+    root_id: entityNodeId,
+    nodes: relevantNodes.length > 0 ? relevantNodes : fullGraph.nodes.slice(0, 8),
+    edges: relevantEdges,
+  };
 }
 
 export async function getGraphOverview(params?: {
   limit_entities?: number;
   limit_edges?: number;
 }): Promise<GraphResponse> {
-  try {
-    const query = new URLSearchParams();
-    if (params?.limit_entities) query.set('limit_entities', params.limit_entities.toString());
-    if (params?.limit_edges) query.set('limit_edges', params.limit_edges.toString());
+  if (!shouldBypassLocalBackend()) {
+    try {
+      const query = new URLSearchParams();
+      if (params?.limit_entities) query.set('limit_entities', params.limit_entities.toString());
+      if (params?.limit_edges) query.set('limit_edges', params.limit_edges.toString());
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
 
-    const res = await fetch(`${API_BASE}/graph/overview?${query.toString()}`, {
-      cache: 'no-store',
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+      const res = await fetch(`${API_BASE}/graph/overview?${query.toString()}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      throw new Error(`Failed to load graph overview: ${res.statusText}`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) {
+      // Backend unreachable
     }
-
-    return await res.json();
-  } catch (err) {
-    console.warn(`[Knowledge Engine API] Graph overview unreachable, serving curated graph:`, err);
-    return getCuratedGraphData();
   }
+
+  return getCuratedGraphData();
 }
