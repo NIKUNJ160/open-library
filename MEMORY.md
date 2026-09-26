@@ -487,6 +487,28 @@ All 6 backend roadmap phases and the complete editorial book library frontend te
      - Seamlessly serves live real-world data for any search query worldwide.
 - **Verification**:
   - `npm run build` compiled cleanly with 0 errors across all 8 routes.
+  - Pushed to `main` (`3d54d5c`), Vercel deployment `dpl_pFfQtBKE4ANcu3NgABiqNH6LSGQe` succeeded Ready.
+
+---
+
+### Session 18: Government Research Papers & Open-Source Academic Repositories Integration
+- **User Request**:
+  > and what about government published research papers, other paper from available open-source plateforms
+- **Architecture & Source Expansion**:
+  1. **Integrated Europe PMC & PubMed Central**:
+     - Connects directly to `https://www.ebi.ac.uk/europepmc/webservices/rest/search`.
+     - Indexes 40M+ biomedical abstracts and 9M+ full-text open access papers funded by the US National Institutes of Health (NIH), CDC, UK NHS, Wellcome Trust, and World Health Organization (WHO).
+     - Provides direct access to PMCID full text and open access licenses.
+  2. **Integrated Crossref Government Technical Reports & DOI Registry**:
+     - Connects directly to `https://api.crossref.org/works`.
+     - Indexes official government technical reports, standards, and research publications from NASA, US Geological Survey (USGS), Department of Energy (DOE), National Institute of Standards and Technology (NIST), EPA, and NOAA.
+     - Detects government agencies and classifies documents as `gov_report` with public domain government attribution.
+  3. **Updated UI Filters in `search/page.tsx`**:
+     - Added dedicated source filter: `Crossref (Gov & Tech Reports)` and `Europe PMC (NIH & Biomedical)`.
+     - Added format filter: `Gov & Technical Reports` (`gov_report`).
+- **Verification**:
+  - `npm run build` compiled cleanly with 0 errors across all 8 routes.
+
 
 
 

@@ -87,16 +87,17 @@ function SearchContent() {
     { label: 'All Sources', value: '' },
     { label: 'Open Library (Books)', value: 'openlibrary' },
     { label: 'Wikipedia (Encyclopedia)', value: 'wikipedia' },
-    { label: 'OpenAlex (Scholarly)', value: 'openalex' },
-    { label: 'Crossref (DOIs)', value: 'crossref' },
-    { label: 'Europe PMC (Preprints)', value: 'europepmc' },
+    { label: 'OpenAlex (Global Scholarly)', value: 'openalex' },
+    { label: 'Crossref (Gov & Tech Reports)', value: 'crossref' },
+    { label: 'Europe PMC (NIH & Biomedical)', value: 'europepmc' },
   ];
 
   const typesList = [
     { label: 'All Formats', value: '' },
     { label: 'Books', value: 'book' },
-    { label: 'Papers', value: 'paper' },
-    { label: 'Articles', value: 'article' },
+    { label: 'Research Papers', value: 'paper' },
+    { label: 'Encyclopedia Articles', value: 'article' },
+    { label: 'Gov & Technical Reports', value: 'gov_report' },
   ];
 
   return (
