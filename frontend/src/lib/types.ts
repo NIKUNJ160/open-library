@@ -13,6 +13,7 @@ export interface SearchResultItem {
   has_fulltext?: boolean;
   ia_id?: string | null;
   pdf_url?: string | null;
+  cover_url?: string | null;
 }
 
 export interface SearchResponse {
@@ -57,6 +58,7 @@ export interface DocumentDetail {
   has_fulltext?: boolean;
   ia_id?: string | null;
   pdf_url?: string | null;
+  cover_url?: string | null;
 }
 
 export interface CitationResponse {

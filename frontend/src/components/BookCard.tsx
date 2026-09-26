@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { SearchResultItem } from '@/lib/types';
 import { BookOpen, Calendar, Quote, ExternalLink } from 'lucide-react';
@@ -20,6 +20,7 @@ const COVER_PALETTES = [
 ];
 
 export const BookCard: React.FC<BookCardProps> = ({ item, onCite }) => {
+  const [imageError, setImageError] = useState(false);
   // Select color deterministically based on title length
   const paletteIndex = item.title.length % COVER_PALETTES.length;
   const palette = COVER_PALETTES[paletteIndex];
@@ -28,37 +29,63 @@ export const BookCard: React.FC<BookCardProps> = ({ item, onCite }) => {
     ? new Date(item.published_at).getFullYear()
     : null;
 
+  const hasImage = Boolean(item.cover_url && !imageError);
+
   return (
     <div className="group flex flex-col justify-between bg-white border border-library-border rounded-md p-4 transition-all duration-200 hover:border-library-accent/60 hover:shadow-sm">
       <div className="space-y-3">
         {/* Book Cover Container */}
-        <Link
-          href={`/document/${item.id}`}
-          className={`block relative aspect-[2/3] w-full rounded-sm bg-gradient-to-b ${palette.bg} border ${palette.border} p-4 shadow-sm overflow-hidden group-hover:scale-[1.01] transition-transform`}
-        >
-          {/* Subtle Book Spine Effect */}
-          <div className="absolute left-0 top-0 bottom-0 w-3 bg-black/20 border-r border-white/10" />
+        {hasImage ? (
+          <Link
+            href={`/document/${item.id}`}
+            className="block relative aspect-[2/3] w-full rounded-sm bg-stone-900 border border-stone-800/80 shadow-sm overflow-hidden group-hover:scale-[1.01] transition-transform"
+          >
+            <img
+              src={item.cover_url!}
+              alt={item.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onError={() => setImageError(true)}
+              loading="lazy"
+            />
+            {/* Realistic Book Spine Crease & Shadow */}
+            <div className="absolute left-0 top-0 bottom-0 w-3 bg-gradient-to-r from-black/60 via-black/20 to-transparent pointer-events-none border-r border-white/10" />
 
-          {/* Top Tag & Bookmark Ribbon */}
-          <div className="flex items-center justify-between pl-2">
-            <span className="text-[9px] uppercase font-bold tracking-widest text-stone-200">
-              {item.doc_type || 'work'}
-            </span>
-            <div className={`w-2 h-4 ${palette.ribbon} rounded-b-sm shadow-sm`} />
-          </div>
+            {/* Top Tag */}
+            <div className="absolute top-2.5 left-3 right-2 flex items-center justify-between pointer-events-none">
+              <span className="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-sm text-stone-100 border border-white/20 shadow">
+                {item.doc_type || 'work'}
+              </span>
+            </div>
+          </Link>
+        ) : (
+          <Link
+            href={`/document/${item.id}`}
+            className={`block relative aspect-[2/3] w-full rounded-sm bg-gradient-to-b ${palette.bg} border ${palette.border} p-4 shadow-sm overflow-hidden group-hover:scale-[1.01] transition-transform`}
+          >
+            {/* Subtle Book Spine Effect */}
+            <div className="absolute left-0 top-0 bottom-0 w-3 bg-black/20 border-r border-white/10" />
 
-          {/* Book Cover Typography */}
-          <div className="absolute inset-x-5 bottom-5 space-y-1.5 pl-1">
-            <h3 className="font-editorial text-base sm:text-lg font-bold text-white line-clamp-3 leading-snug drop-shadow-sm">
-              {item.title}
-            </h3>
-            {item.authors && item.authors.length > 0 && (
-              <p className="text-xs text-stone-200 font-medium line-clamp-1 italic">
-                {item.authors.join(', ')}
-              </p>
-            )}
-          </div>
-        </Link>
+            {/* Top Tag & Bookmark Ribbon */}
+            <div className="flex items-center justify-between pl-2">
+              <span className="text-[9px] uppercase font-bold tracking-widest text-stone-200">
+                {item.doc_type || 'work'}
+              </span>
+              <div className={`w-2 h-4 ${palette.ribbon} rounded-b-sm shadow-sm`} />
+            </div>
+
+            {/* Book Cover Typography */}
+            <div className="absolute inset-x-5 bottom-5 space-y-1.5 pl-1">
+              <h3 className="font-editorial text-base sm:text-lg font-bold text-white line-clamp-3 leading-snug drop-shadow-sm">
+                {item.title}
+              </h3>
+              {item.authors && item.authors.length > 0 && (
+                <p className="text-xs text-stone-200 font-medium line-clamp-1 italic">
+                  {item.authors.join(', ')}
+                </p>
+              )}
+            </div>
+          </Link>
+        )}
 
         {/* Book Metadata */}
         <div className="space-y-1.5 pt-1">

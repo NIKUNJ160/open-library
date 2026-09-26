@@ -67,6 +67,7 @@ export async function searchPublicCatalog(params: {
       has_fulltext: doc.has_fulltext ?? true,
       ia_id: doc.ia_id || null,
       pdf_url: doc.pdf_url || null,
+      cover_url: doc.cover_url || null,
     }));
     return {
       query: '',
@@ -104,6 +105,7 @@ export async function searchPublicCatalog(params: {
         has_fulltext: c.has_fulltext ?? true,
         ia_id: c.ia_id || null,
         pdf_url: c.pdf_url || null,
+        cover_url: c.cover_url || null,
       });
     }
   }
@@ -115,7 +117,7 @@ export async function searchPublicCatalog(params: {
   const shouldFetchEPMC = (!sourceFilter || sourceFilter === 'europepmc') && (!docTypeFilter || docTypeFilter === 'paper');
   const shouldFetchCrossref = (!sourceFilter || sourceFilter === 'crossref') && (!docTypeFilter || docTypeFilter === 'paper' || docTypeFilter === 'gov_report');
 
-  // 1. Open Library API (Books & Authors)
+  // 1. Open Library API (Books & Authors with original covers)
   const olPromise = (async (): Promise<SearchResultItem[]> => {
     if (!shouldFetchOL) return [];
     try {
@@ -142,6 +144,17 @@ export async function searchPublicCatalog(params: {
         const hasFulltext = Boolean(doc.has_fulltext || iaId);
         const pdfUrl = iaId ? `https://archive.org/download/${iaId}/${iaId}.pdf` : null;
 
+        // Map authentic book cover image from Open Library Cover CDN or Internet Archive
+        const coverUrl = doc.cover_i
+          ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`
+          : doc.cover_edition_key
+          ? `https://covers.openlibrary.org/b/olid/${doc.cover_edition_key}-L.jpg`
+          : (Array.isArray(doc.isbn) && doc.isbn[0])
+          ? `https://covers.openlibrary.org/b/isbn/${doc.isbn[0]}-L.jpg`
+          : iaId
+          ? `https://archive.org/services/img/${iaId}`
+          : null;
+
         return {
           id: olid,
           source: 'openlibrary',
@@ -157,6 +170,7 @@ export async function searchPublicCatalog(params: {
           has_fulltext: hasFulltext,
           ia_id: iaId,
           pdf_url: pdfUrl,
+          cover_url: coverUrl,
         };
       });
     } catch (e) {
@@ -165,23 +179,27 @@ export async function searchPublicCatalog(params: {
     }
   })();
 
-  // 2. Wikipedia Search API (Articles & Encyclopedia)
+  // 2. Wikipedia Search API (Articles & Encyclopedia with original cover thumbnails)
   const wikiPromise = (async (): Promise<SearchResultItem[]> => {
     if (!shouldFetchWiki) return [];
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 4500);
       const res = await fetch(
-        `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&utf8=&format=json&origin=*`,
+        `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(q)}&gsrlimit=12&prop=pageimages|extracts&piprop=thumbnail&pithumbsize=600&exintro=1&explaintext=1&exsentences=3&utf8=&format=json&origin=*`,
         { signal: controller.signal }
       );
       clearTimeout(timer);
       if (!res.ok) return [];
       const json = await res.json();
-      const items = json?.query?.search || [];
+      const pages = json?.query?.pages ? Object.values(json.query.pages) : [];
 
-      return items.map((item: any, index: number): SearchResultItem => {
-        const cleanSnippet = stripHtml(item.snippet || '') + '...';
+      return pages.map((item: any, index: number): SearchResultItem => {
+        const cleanSnippet = item.extract
+          ? item.extract.slice(0, 260) + (item.extract.length > 260 ? '...' : '')
+          : `Encyclopedia article on ${item.title}.`;
+        const coverUrl = item.thumbnail?.source || null;
+
         return {
           id: `wiki-${item.pageid}`,
           source: 'wikipedia',
@@ -192,11 +210,12 @@ export async function searchPublicCatalog(params: {
           url: `https://en.wikipedia.org/wiki/${encodeURIComponent(item.title.replace(/ /g, '_'))}`,
           license: 'CC-BY-SA-4.0',
           score: Math.max(68, Number((96 - index * 1.8).toFixed(1))),
-          published_at: item.timestamp ? item.timestamp.slice(0, 10) : null,
+          published_at: item.touched ? item.touched.slice(0, 10) : null,
           authors: ['Wikipedia Contributors'],
           has_fulltext: true,
           ia_id: null,
           pdf_url: null,
+          cover_url: coverUrl,
         };
       });
     } catch (e) {
@@ -498,6 +517,13 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
           text: text.trim(),
         }));
 
+        let coverUrl: string | null = null;
+        if (Array.isArray(data.covers) && data.covers.length > 0 && data.covers[0] > 0) {
+          coverUrl = `https://covers.openlibrary.org/b/id/${data.covers[0]}-L.jpg`;
+        } else if (iaId) {
+          coverUrl = `https://archive.org/services/img/${iaId}`;
+        }
+
         return {
           id: olid,
           source: 'openlibrary',
@@ -526,6 +552,7 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
           has_fulltext: hasFulltext,
           ia_id: iaId,
           pdf_url: iaId ? `https://archive.org/download/${iaId}/${iaId}.pdf` : null,
+          cover_url: coverUrl,
         };
       }
     } catch (e) {
@@ -538,13 +565,14 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
     const pageid = id.replace('wiki-', '');
     try {
       const res = await fetch(
-        `https://en.wikipedia.org/w/api.php?action=query&prop=extracts|pageimages&explaintext=1&pageids=${pageid}&format=json&origin=*`
+        `https://en.wikipedia.org/w/api.php?action=query&prop=extracts|pageimages&piprop=thumbnail|original&pithumbsize=600&explaintext=1&pageids=${pageid}&format=json&origin=*`
       );
       if (res.ok) {
         const json = await res.json();
         const page = json?.query?.pages?.[pageid];
         if (page) {
           const title = page.title;
+          const coverUrl = page.thumbnail?.source || page.original?.source || null;
           const fullText = page.extract || 'Wikipedia encyclopedia article.';
           const paragraphs = fullText.split('\n\n').filter((p: string) => p.trim().length > 30);
           const chunks = paragraphs.map((text: string, idx: number) => ({
@@ -577,6 +605,7 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
             has_fulltext: true,
             ia_id: null,
             pdf_url: null,
+            cover_url: coverUrl,
           };
         }
       }
@@ -781,6 +810,7 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
       },
     ],
     entities: [],
+    cover_url: null,
   };
 }
 

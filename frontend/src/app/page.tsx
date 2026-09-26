@@ -33,6 +33,9 @@ const FEATURED_WORKS: SearchResultItem[] = [
     score: 99.4,
     published_at: '1859-11-24',
     authors: ['Charles Darwin'],
+    has_fulltext: true,
+    ia_id: 'originofspecies00darwuoft',
+    cover_url: 'https://covers.openlibrary.org/b/id/7153600-L.jpg',
   },
   {
     id: '22222222-2222-2222-2222-222222222222',
@@ -46,6 +49,9 @@ const FEATURED_WORKS: SearchResultItem[] = [
     score: 98.7,
     published_at: '1916-01-01',
     authors: ['Albert Einstein'],
+    has_fulltext: true,
+    ia_id: 'relativityspecia00einsuoft',
+    cover_url: 'https://covers.openlibrary.org/b/id/7414859-L.jpg',
   },
   {
     id: '33333333-3333-3333-3333-333333333333',
@@ -59,6 +65,8 @@ const FEATURED_WORKS: SearchResultItem[] = [
     score: 98.2,
     published_at: '2017-06-12',
     authors: ['Ashish Vaswani', 'Noam Shazeer', 'Illia Polosukhin'],
+    has_fulltext: true,
+    cover_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Transformer_architecture.png/600px-Transformer_architecture.png',
   },
   {
     id: '44444444-4444-4444-4444-444444444444',
@@ -72,6 +80,8 @@ const FEATURED_WORKS: SearchResultItem[] = [
     score: 97.9,
     published_at: '2012-06-28',
     authors: ['Jennifer A Doudna', 'Emmanuelle Charpentier'],
+    has_fulltext: true,
+    cover_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/CRISPR-Cas9.svg/600px-CRISPR-Cas9.svg.png',
   },
   {
     id: '55555555-5555-5555-5555-555555555555',
@@ -85,6 +95,8 @@ const FEATURED_WORKS: SearchResultItem[] = [
     score: 96.5,
     published_at: '1953-04-25',
     authors: ['J. D. Watson', 'F. H. C. Crick'],
+    has_fulltext: true,
+    cover_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Photo_51_x-ray_diffraction_image.jpg/600px-Photo_51_x-ray_diffraction_image.jpg',
   },
   {
     id: '66666666-6666-6666-6666-666666666666',
@@ -98,6 +110,9 @@ const FEATURED_WORKS: SearchResultItem[] = [
     score: 95.8,
     published_at: '1988-04-01',
     authors: ['Stephen Hawking'],
+    has_fulltext: true,
+    ia_id: 'briefhistoryofti0000hawk_s1w1',
+    cover_url: 'https://archive.org/services/img/briefhistoryofti0000hawk_s1w1',
   }
 ];
 
@@ -233,41 +248,54 @@ export default function EditorialHomePage() {
         {/* Large Editorial Card + Supporting Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Main Hero Book Card */}
-          <div className="lg:col-span-6 bg-white border border-library-border rounded-md p-6 sm:p-8 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-xs text-library-muted">
-                <span className="uppercase tracking-widest font-semibold text-library-accent">
-                  Editor&apos;s Landmark Pick
-                </span>
-                <span className="font-mono">1859 • Classic</span>
+          <div className="lg:col-span-6 bg-white border border-library-border rounded-md p-6 sm:p-8 flex flex-col sm:flex-row gap-6 justify-between items-start">
+            <Link
+              href="/document/11111111-1111-1111-1111-111111111111"
+              className="w-32 sm:w-44 aspect-[2/3] shrink-0 rounded bg-stone-900 border border-stone-800 shadow-md relative overflow-hidden group hover:scale-[1.02] transition-transform hidden sm:block"
+            >
+              <img
+                src="https://covers.openlibrary.org/b/id/7153600-L.jpg"
+                alt="On the Origin of Species original cover"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute left-0 top-0 bottom-0 w-3 bg-gradient-to-r from-black/60 to-transparent pointer-events-none" />
+            </Link>
+            <div className="flex flex-col justify-between h-full space-y-4 flex-1">
+              <div>
+                <div className="flex items-center justify-between text-xs text-library-muted mb-2">
+                  <span className="uppercase tracking-widest font-semibold text-library-accent">
+                    Editor&apos;s Landmark Pick
+                  </span>
+                  <span className="font-mono">1859 • Classic</span>
+                </div>
+                <h3 className="font-editorial text-2xl sm:text-3xl font-bold text-library-dark leading-snug">
+                  On the Origin of Species by Means of Natural Selection
+                </h3>
+                <p className="text-sm text-library-secondary font-medium italic pt-1">
+                  By Charles Darwin
+                </p>
+                <p className="text-sm text-library-secondary leading-relaxed pt-2">
+                  Published on 24 November 1859, Darwin&apos;s masterwork introduced the scientific
+                  theory that biological populations evolve over generations through natural
+                  selection, fundamentally reshaping humanity&apos;s understanding of life on Earth.
+                </p>
               </div>
-              <h3 className="font-editorial text-2xl sm:text-3xl font-bold text-library-dark leading-snug">
-                On the Origin of Species by Means of Natural Selection
-              </h3>
-              <p className="text-sm text-library-secondary font-medium italic">
-                By Charles Darwin
-              </p>
-              <p className="text-sm text-library-secondary leading-relaxed pt-2">
-                Published on 24 November 1859, Darwin&apos;s masterwork introduced the scientific
-                theory that biological populations evolve over generations through natural
-                selection, fundamentally reshaping humanity&apos;s understanding of life on Earth.
-              </p>
-            </div>
 
-            <div className="pt-8 border-t border-library-border/80 flex items-center gap-4">
-              <Link
-                href="/read/11111111-1111-1111-1111-111111111111"
-                className="px-5 py-2.5 rounded-md bg-library-accent text-white text-xs font-bold uppercase tracking-wider hover:bg-library-accent-hover transition flex items-center gap-2"
-              >
-                <BookOpen className="w-4 h-4" />
-                <span>Read Online</span>
-              </Link>
-              <Link
-                href="/document/11111111-1111-1111-1111-111111111111"
-                className="px-4 py-2.5 rounded-md border border-library-border hover:bg-library-card text-xs font-semibold text-library-dark transition"
-              >
-                Bibliographic Record
-              </Link>
+              <div className="pt-6 border-t border-library-border/80 flex items-center gap-4 flex-wrap">
+                <Link
+                  href="/read/11111111-1111-1111-1111-111111111111"
+                  className="px-5 py-2.5 rounded-md bg-library-accent text-white text-xs font-bold uppercase tracking-wider hover:bg-library-accent-hover transition flex items-center gap-2"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  <span>Read Online</span>
+                </Link>
+                <Link
+                  href="/document/11111111-1111-1111-1111-111111111111"
+                  className="px-4 py-2.5 rounded-md border border-library-border hover:bg-library-card text-xs font-semibold text-library-dark transition"
+                >
+                  Bibliographic Record
+                </Link>
+              </div>
             </div>
           </div>
 

@@ -29,6 +29,7 @@ export default function DocumentPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [citationOpen, setCitationOpen] = useState(false);
+  const [coverError, setCoverError] = useState(false);
 
   useEffect(() => {
     if (!documentId) return;
@@ -93,26 +94,43 @@ export default function DocumentPage() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 sm:gap-12">
             {/* Left Column: Simulated Book Cover & Quick Actions */}
             <div className="md:col-span-4 lg:col-span-4 space-y-5">
-              <div className="relative aspect-[2/3] w-full rounded bg-gradient-to-b from-stone-900 to-stone-950 border border-stone-800 p-6 shadow-md flex flex-col justify-between overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 w-3.5 bg-black/30 border-r border-white/10" />
-                <div className="pl-3 flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-stone-300">
+              {doc.cover_url && !coverError ? (
+                <div className="relative aspect-[2/3] w-full rounded bg-stone-900 border border-stone-800 shadow-md overflow-hidden group">
+                  <img
+                    src={doc.cover_url}
+                    alt={doc.title}
+                    className="w-full h-full object-cover"
+                    onError={() => setCoverError(true)}
+                  />
+                  {/* Subtle Spine Crease & Shadow */}
+                  <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-black/60 via-black/20 to-transparent pointer-events-none border-r border-white/10" />
+                  {/* Format Badge */}
+                  <div className="absolute top-3 right-3 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest bg-black/80 backdrop-blur-sm text-white border border-white/20 shadow-sm pointer-events-none">
                     {doc.doc_type || 'edition'}
-                  </span>
-                  <span className="text-[10px] font-mono text-stone-300">{year || 'Archive'}</span>
+                  </div>
                 </div>
+              ) : (
+                <div className="relative aspect-[2/3] w-full rounded bg-gradient-to-b from-stone-900 to-stone-950 border border-stone-800 p-6 shadow-md flex flex-col justify-between overflow-hidden">
+                  <div className="absolute left-0 top-0 bottom-0 w-3.5 bg-black/30 border-r border-white/10" />
+                  <div className="pl-3 flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-stone-300">
+                      {doc.doc_type || 'edition'}
+                    </span>
+                    <span className="text-[10px] font-mono text-stone-300">{year || 'Archive'}</span>
+                  </div>
 
-                <div className="pl-3 space-y-2">
-                  <h2 className="font-editorial text-xl sm:text-2xl font-bold text-white leading-snug drop-shadow-sm">
-                    {doc.title}
-                  </h2>
-                  {authors.length > 0 && (
-                    <p className="text-xs text-stone-200 italic font-medium">
-                      By {authors.join(', ')}
-                    </p>
-                  )}
+                  <div className="pl-3 space-y-2">
+                    <h2 className="font-editorial text-xl sm:text-2xl font-bold text-white leading-snug drop-shadow-sm">
+                      {doc.title}
+                    </h2>
+                    {authors.length > 0 && (
+                      <p className="text-xs text-stone-200 italic font-medium">
+                        By {authors.join(', ')}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Action Buttons */}
               <div className="space-y-2 pt-2">

@@ -308,57 +308,73 @@ function SearchContent() {
                     key={item.id}
                     className="bg-white border border-library-border rounded-md p-5 hover:border-library-accent/60 transition flex flex-col sm:flex-row items-start justify-between gap-4 group"
                   >
-                    <div className="space-y-2 max-w-2xl">
-                      <div className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-wider flex-wrap">
-                        <span className="px-2 py-0.5 rounded bg-library-card border border-library-border text-library-secondary">
-                          {item.source}
-                        </span>
-                        <span className="text-library-accent">
-                          {item.doc_type || 'work'}
-                        </span>
-                        {year && (
-                          <span className="text-library-muted font-mono">
-                            • {year}
+                    <div className="flex items-start gap-4 flex-1">
+                      {item.cover_url && (
+                        <Link
+                          href={`/document/${item.id}`}
+                          className="hidden sm:block w-14 aspect-[2/3] shrink-0 rounded overflow-hidden bg-stone-900 border border-stone-800 shadow-sm relative group-hover:scale-105 transition-transform"
+                        >
+                          <img
+                            src={item.cover_url}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-r from-black/50 to-transparent pointer-events-none" />
+                        </Link>
+                      )}
+                      <div className="space-y-2 max-w-2xl flex-1">
+                        <div className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-wider flex-wrap">
+                          <span className="px-2 py-0.5 rounded bg-library-card border border-library-border text-library-secondary">
+                            {item.source}
                           </span>
+                          <span className="text-library-accent">
+                            {item.doc_type || 'work'}
+                          </span>
+                          {year && (
+                            <span className="text-library-muted font-mono">
+                              • {year}
+                            </span>
+                          )}
+                          <span className="text-library-muted">
+                            • {item.license}
+                          </span>
+                          {item.has_fulltext && (
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300/80">
+                              Full Text
+                            </span>
+                          )}
+                          {item.ia_id && (
+                            <span className="px-1.5 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-300/80">
+                              Scanned Book
+                            </span>
+                          )}
+                          {item.pdf_url && (
+                            <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-300/80">
+                              PDF
+                            </span>
+                          )}
+                        </div>
+
+                        <Link
+                          href={`/document/${item.id}`}
+                          className="font-editorial text-lg font-bold text-library-dark group-hover:text-library-accent transition block leading-snug"
+                        >
+                          {item.title}
+                        </Link>
+
+                        {item.authors && item.authors.length > 0 && (
+                          <p className="text-xs text-library-secondary italic">
+                            By {item.authors.join(', ')}
+                          </p>
                         )}
-                        <span className="text-library-muted">
-                          • {item.license}
-                        </span>
-                        {item.has_fulltext && (
-                          <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300/80">
-                            Full Text
-                          </span>
-                        )}
-                        {item.ia_id && (
-                          <span className="px-1.5 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-300/80">
-                            Scanned Book
-                          </span>
-                        )}
-                        {item.pdf_url && (
-                          <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-300/80">
-                            PDF
-                          </span>
+
+                        {item.snippet && (
+                          <p className="text-xs text-library-secondary leading-relaxed line-clamp-2">
+                            {item.snippet}
+                          </p>
                         )}
                       </div>
-
-                      <Link
-                        href={`/document/${item.id}`}
-                        className="font-editorial text-lg font-bold text-library-dark group-hover:text-library-accent transition block leading-snug"
-                      >
-                        {item.title}
-                      </Link>
-
-                      {item.authors && item.authors.length > 0 && (
-                        <p className="text-xs text-library-secondary italic">
-                          By {item.authors.join(', ')}
-                        </p>
-                      )}
-
-                      {item.snippet && (
-                        <p className="text-xs text-library-secondary leading-relaxed line-clamp-2">
-                          {item.snippet}
-                        </p>
-                      )}
                     </div>
 
                     <div className="flex sm:flex-col items-center sm:items-end gap-2 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-library-border/50">
