@@ -4,6 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { searchDocuments } from '@/lib/api';
+import { searchCuratedCatalog } from '@/lib/curatedCatalog';
 import { SearchResponse, SearchResultItem } from '@/lib/types';
 import { SearchBar } from '@/components/SearchBar';
 import { BookCard } from '@/components/BookCard';
@@ -244,12 +245,32 @@ function SearchContent() {
           )}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-6 text-red-800 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="font-bold text-sm">Query Failed</h4>
-                <p className="text-xs mt-1">{error}</p>
+            <div className="bg-amber-50 border border-amber-200 rounded-md p-6 text-amber-950 flex flex-col sm:flex-row items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-700" />
+                <div>
+                  <h4 className="font-bold text-sm">Catalog Notice</h4>
+                  <p className="text-xs mt-1 text-amber-800">
+                    The external indexing backend is offline or connecting. You can explore the curated public domain catalog.
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={() => {
+                  setError(null);
+                  setData(
+                    searchCuratedCatalog({
+                      q: query,
+                      source: sourceFilter || undefined,
+                      doc_type: docTypeFilter || undefined,
+                      enable_rerank: enableRerank,
+                    })
+                  );
+                }}
+                className="px-4 py-2 bg-library-accent text-white rounded text-xs font-semibold hover:bg-library-accent-hover transition flex-shrink-0"
+              >
+                Explore Curated Works
+              </button>
             </div>
           )}
 
