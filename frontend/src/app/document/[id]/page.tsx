@@ -124,6 +124,28 @@ export default function DocumentPage() {
                   <span>Read Online</span>
                 </Link>
 
+                {doc.ia_id && (
+                  <Link
+                    href={`/read/${doc.id}?mode=ia`}
+                    className="w-full py-2.5 px-3 rounded border border-sky-300 bg-sky-50 hover:bg-sky-100 text-sky-950 font-semibold text-xs transition flex items-center justify-center gap-1.5"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-sky-700" />
+                    <span>Interactive Flipbook</span>
+                  </Link>
+                )}
+
+                {doc.pdf_url && (
+                  <a
+                    href={doc.pdf_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2.5 px-3 rounded border border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-950 font-semibold text-xs transition flex items-center justify-center gap-1.5"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 text-purple-700" />
+                    <span>Open Full-Text PDF</span>
+                  </a>
+                )}
+
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setCitationOpen(true)}
@@ -158,12 +180,17 @@ export default function DocumentPage() {
             {/* Right Column: Bibliographic Details */}
             <div className="md:col-span-8 lg:col-span-8 space-y-6">
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-widest text-library-accent">
+                <div className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-widest text-library-accent flex-wrap">
                   <span>{doc.source}</span>
                   <span>•</span>
                   <span>{doc.doc_type}</span>
                   <span>•</span>
                   <span>{doc.license}</span>
+                  {doc.has_fulltext && (
+                    <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300/80 font-bold ml-1">
+                      Full Text Available
+                    </span>
+                  )}
                 </div>
                 <h1 className="font-editorial text-2xl sm:text-4xl font-extrabold text-library-dark leading-tight">
                   {doc.title}
@@ -174,6 +201,35 @@ export default function DocumentPage() {
                   </p>
                 )}
               </div>
+
+              {/* Publication Status & Rights Notice */}
+              {doc.has_fulltext || doc.ia_id || doc.pdf_url ? (
+                <div className="rounded-md border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs text-emerald-950 flex items-start gap-2.5">
+                  <BookOpen className="w-4 h-4 text-emerald-700 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">Unabridged Full Text: </span>
+                    <span>
+                      {doc.ia_id
+                        ? 'Includes digitized historical volume from the Internet Archive with interactive page-flip reader, zoom, and text search.'
+                        : doc.pdf_url
+                        ? 'Published under Open Access with complete unabridged scientific publication PDF available.'
+                        : doc.source === 'wikipedia'
+                        ? 'Complete multi-section encyclopedia article available unabridged in reader mode.'
+                        : 'Unabridged public domain text available to read.'}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-md border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-950 flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">Bibliographic Record & Synopsis: </span>
+                    <span>
+                      Search indexes display executive synopses and metadata for modern copyrighted works. To read or borrow complete copyrighted volumes, visit the original library or publisher repository linked below.
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Metadata Table */}
               <div className="border border-library-border rounded-md bg-library-bg/60 p-4 divide-y divide-library-border/60 text-xs">
@@ -213,9 +269,14 @@ export default function DocumentPage() {
 
               {/* Description / Summary Section */}
               <div className="space-y-3 pt-2">
-                <h3 className="text-xs uppercase font-bold tracking-wider text-library-dark">
-                  About this Work
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs uppercase font-bold tracking-wider text-library-dark">
+                    About this Work
+                  </h3>
+                  <span className="text-[10px] text-library-muted uppercase font-mono">
+                    {doc.has_fulltext ? 'Full Text / Synopsis' : 'Executive Abstract'}
+                  </span>
+                </div>
                 <p className="text-sm text-library-secondary leading-relaxed whitespace-pre-line">
                   {doc.content || 'No detailed synopsis provided for this record.'}
                 </p>

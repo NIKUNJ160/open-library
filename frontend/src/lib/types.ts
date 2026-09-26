@@ -10,6 +10,9 @@ export interface SearchResultItem {
   score: number;
   published_at?: string | null;
   authors?: string[] | null;
+  has_fulltext?: boolean;
+  ia_id?: string | null;
+  pdf_url?: string | null;
 }
 
 export interface SearchResponse {
@@ -51,6 +54,9 @@ export interface DocumentDetail {
   updated_at: string;
   chunks?: ChunkDetail[];
   entities?: EntityMention[];
+  has_fulltext?: boolean;
+  ia_id?: string | null;
+  pdf_url?: string | null;
 }
 
 export interface CitationResponse {

@@ -64,6 +64,9 @@ export async function searchPublicCatalog(params: {
       score: doc.score,
       published_at: doc.published_at,
       authors: doc.authors,
+      has_fulltext: doc.has_fulltext ?? true,
+      ia_id: doc.ia_id || null,
+      pdf_url: doc.pdf_url || null,
     }));
     return {
       query: '',
@@ -98,6 +101,9 @@ export async function searchPublicCatalog(params: {
         score: c.score + 5,
         published_at: c.published_at,
         authors: c.authors,
+        has_fulltext: c.has_fulltext ?? true,
+        ia_id: c.ia_id || null,
+        pdf_url: c.pdf_url || null,
       });
     }
   }
@@ -132,6 +138,9 @@ export async function searchPublicCatalog(params: {
         const snippetText = doc.first_sentence
           ? doc.first_sentence[0]
           : [publisher, editions].filter(Boolean).join(' • ') || 'Cataloged in the open library repository with public domain and open access records.';
+        const iaId = Array.isArray(doc.ia) && doc.ia.length > 0 ? doc.ia[0] : null;
+        const hasFulltext = Boolean(doc.has_fulltext || iaId);
+        const pdfUrl = iaId ? `https://archive.org/download/${iaId}/${iaId}.pdf` : null;
 
         return {
           id: olid,
@@ -145,6 +154,9 @@ export async function searchPublicCatalog(params: {
           score: Math.max(70, Number((98 - index * 1.5).toFixed(1))),
           published_at: pubYear ? `${pubYear}-01-01` : null,
           authors,
+          has_fulltext: hasFulltext,
+          ia_id: iaId,
+          pdf_url: pdfUrl,
         };
       });
     } catch (e) {
@@ -182,6 +194,9 @@ export async function searchPublicCatalog(params: {
           score: Math.max(68, Number((96 - index * 1.8).toFixed(1))),
           published_at: item.timestamp ? item.timestamp.slice(0, 10) : null,
           authors: ['Wikipedia Contributors'],
+          has_fulltext: true,
+          ia_id: null,
+          pdf_url: null,
         };
       });
     } catch (e) {
@@ -211,6 +226,9 @@ export async function searchPublicCatalog(params: {
         const snippetText = reconstructed
           ? reconstructed.slice(0, 260) + '...'
           : `Scholarly publication in ${item.primary_location?.source?.display_name || 'peer-reviewed venue'}. Citations: ${item.cited_by_count || 0}.`;
+        const pdfUrl = item.best_oa_location?.pdf_url || item.primary_location?.pdf_url || null;
+        const isOA = Boolean(item.open_access?.is_oa);
+        const hasFulltext = Boolean(pdfUrl || isOA);
 
         return {
           id: `openalex-${workId}`,
@@ -220,10 +238,13 @@ export async function searchPublicCatalog(params: {
           snippet: snippetText,
           doc_type: 'paper',
           url: item.doi || item.primary_location?.landing_page_url || `https://openalex.org/${workId}`,
-          license: item.open_access?.is_oa ? 'Open Access' : 'Academic Publication',
+          license: isOA ? 'Open Access' : 'Academic Publication',
           score: Math.max(65, Number((97 - index * 1.6).toFixed(1))),
           published_at: item.publication_year ? `${item.publication_year}-01-01` : null,
           authors: authors.length > 0 ? authors.slice(0, 5) : ['Scholarly Researchers'],
+          has_fulltext: hasFulltext,
+          ia_id: null,
+          pdf_url: pdfUrl,
         };
       });
     } catch (e) {
@@ -252,6 +273,11 @@ export async function searchPublicCatalog(params: {
         const pubYear = item.pubYear || null;
         const journal = item.journalTitle || 'Biomedical & Life Sciences Archive';
         const isOA = item.isOpenAccess === 'Y';
+        const hasPdf = item.hasPDF === 'Y';
+        const pdfUrl = item.pmcid
+          ? `https://europepmc.org/articles/${item.pmcid}?pdf=render`
+          : null;
+        const hasFulltext = Boolean(isOA || hasPdf || item.pmcid);
         const snippet = `Published in ${journal} (${pubYear || 'N/D'}). ${
           isOA ? 'Open Access PMC paper supported by public research grants.' : 'Indexed in National Library of Medicine & PubMed.'
         }`;
@@ -272,6 +298,9 @@ export async function searchPublicCatalog(params: {
           score: Math.max(66, Number((96 - index * 1.7).toFixed(1))),
           published_at: pubYear ? `${pubYear}-01-01` : null,
           authors: authors.slice(0, 5),
+          has_fulltext: hasFulltext,
+          ia_id: null,
+          pdf_url: pdfUrl,
         };
       });
     } catch (e) {
@@ -302,6 +331,9 @@ export async function searchPublicCatalog(params: {
         const docType = isGov || item.type === 'report' ? 'gov_report' : item.type === 'book' ? 'book' : 'paper';
         const pubYear = item.created?.['date-parts']?.[0]?.[0] || item.published?.['date-parts']?.[0]?.[0] || null;
         const authors = (item.author || []).map((a: any) => [a.given, a.family].filter(Boolean).join(' ')).filter(Boolean);
+        const pdfLink = Array.isArray(item.link)
+          ? item.link.find((l: any) => l['content-type']?.includes('pdf'))?.URL
+          : null;
 
         return {
           id: `doi-${encodeURIComponent(doi)}`,
@@ -315,6 +347,9 @@ export async function searchPublicCatalog(params: {
           score: Math.max(64, Number((95 - index * 1.8).toFixed(1))),
           published_at: pubYear ? `${pubYear}-01-01` : null,
           authors: authors.length > 0 ? authors.slice(0, 5) : [publisher],
+          has_fulltext: Boolean(pdfLink),
+          ia_id: null,
+          pdf_url: pdfLink || null,
         };
       });
     } catch (e) {
@@ -411,9 +446,27 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
   if (id.startsWith('OL') || id.includes('works/OL') || id.startsWith('ol-')) {
     const olid = id.replace('works/', '').replace('ol-', '');
     try {
-      const res = await fetch(`https://openlibrary.org/works/${olid}.json`);
-      if (res.ok) {
-        const data = await res.json();
+      const [workRes, searchRes] = await Promise.allSettled([
+        fetch(`https://openlibrary.org/works/${olid}.json`),
+        fetch(`https://openlibrary.org/search.json?q=key:/works/${olid}&limit=1`),
+      ]);
+
+      let iaId: string | null = null;
+      let hasFulltext = false;
+
+      if (searchRes.status === 'fulfilled' && searchRes.value.ok) {
+        try {
+          const searchJson = await searchRes.value.json();
+          const matchDoc = searchJson.docs?.[0];
+          if (matchDoc) {
+            iaId = Array.isArray(matchDoc.ia) && matchDoc.ia.length > 0 ? matchDoc.ia[0] : null;
+            hasFulltext = Boolean(matchDoc.has_fulltext || iaId);
+          }
+        } catch (_) {}
+      }
+
+      if (workRes.status === 'fulfilled' && workRes.value.ok) {
+        const data = await workRes.value.json();
         const title = data.title || 'Bibliographic Record';
         let description = '';
         if (data.description) {
@@ -470,6 +523,9 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
             entity_type: 'topic',
             role: 'subject',
           })),
+          has_fulltext: hasFulltext,
+          ia_id: iaId,
+          pdf_url: iaId ? `https://archive.org/download/${iaId}/${iaId}.pdf` : null,
         };
       }
     } catch (e) {
@@ -518,6 +574,9 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
               { id: 200, name: title, entity_type: 'topic', role: 'subject' },
               { id: 201, name: 'Wikipedia Community', entity_type: 'person', role: 'contributor' },
             ],
+            has_fulltext: true,
+            ia_id: null,
+            pdf_url: null,
           };
         }
       }
@@ -536,6 +595,9 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
         const title = paper.title || paper.display_name || 'Research Publication';
         const abstract = reconstructAbstract(paper.abstract_inverted_index) || `Academic research publication cataloged under OpenAlex. Citations: ${paper.cited_by_count}.`;
         const authors = (paper.authorships || []).map((a: any) => a.author?.display_name).filter(Boolean);
+        const pdfUrl = paper.best_oa_location?.pdf_url || paper.primary_location?.pdf_url || paper.open_access?.oa_url || null;
+        const isOA = Boolean(paper.open_access?.is_oa);
+        const hasFulltext = Boolean(pdfUrl || isOA);
 
         return {
           id,
@@ -544,7 +606,7 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
           title,
           doc_type: 'paper',
           url: paper.doi || paper.primary_location?.landing_page_url || `https://openalex.org/${workId}`,
-          license: paper.open_access?.is_oa ? 'Open Access' : 'Academic Repository',
+          license: isOA ? 'Open Access' : 'Academic Repository',
           published_at: paper.publication_year ? `${paper.publication_year}-01-01` : '2020-01-01',
           language: 'eng',
           created_at: new Date().toISOString(),
@@ -569,6 +631,9 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
             entity_type: 'topic',
             role: 'concept',
           })),
+          has_fulltext: hasFulltext,
+          ia_id: null,
+          pdf_url: pdfUrl,
         };
       }
     } catch (e) {
@@ -588,6 +653,10 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
           const title = item.title ? item.title.replace(/\.$/, '') : 'Biomedical Record';
           const abstract = item.abstractText ? stripHtml(item.abstractText) : `Biomedical and public health research paper from ${item.journalTitle || 'PubMed Central'}.`;
           const authors = item.authorString ? item.authorString.split(', ') : ['Biomedical Authors'];
+          const isOA = item.isOpenAccess === 'Y';
+          const hasPdf = item.hasPDF === 'Y';
+          const pdfUrl = item.pmcid ? `https://europepmc.org/articles/${item.pmcid}?pdf=render` : null;
+          const hasFulltext = Boolean(isOA || hasPdf || item.pmcid);
 
           return {
             id,
@@ -596,7 +665,7 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
             title,
             doc_type: 'paper',
             url: item.pmcid ? `https://europepmc.org/articles/${item.pmcid}` : `https://pubmed.ncbi.nlm.nih.gov/${rawId}`,
-            license: item.isOpenAccess === 'Y' ? 'Open Access (PMC)' : 'NIH / PubMed Central',
+            license: isOA ? 'Open Access (PMC)' : 'NIH / PubMed Central',
             published_at: item.pubYear ? `${item.pubYear}-01-01` : '2020-01-01',
             language: 'eng',
             created_at: new Date().toISOString(),
@@ -620,6 +689,9 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
               { id: 400, name: 'Biomedical Sciences', entity_type: 'topic', role: 'discipline' },
               { id: 401, name: 'PubMed Central', entity_type: 'org', role: 'repository' },
             ],
+            has_fulltext: hasFulltext,
+            ia_id: null,
+            pdf_url: pdfUrl,
           };
         }
       }
@@ -643,6 +715,9 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
           const authors = (item.author || []).map((a: any) => [a.given, a.family].filter(Boolean).join(' ')).filter(Boolean);
           const pubYear = item.created?.['date-parts']?.[0]?.[0] || '2020';
           const content = `Official publication issued by ${publisher} (${pubYear}). Registered with Digital Object Identifier ${rawDoi}. Category: ${item.type || 'technical publication'}.`;
+          const pdfUrl = Array.isArray(item.link)
+            ? item.link.find((l: any) => l['content-type']?.includes('pdf'))?.URL
+            : null;
 
           return {
             id,
@@ -674,6 +749,9 @@ export async function getPublicDocumentDetail(id: string): Promise<DocumentDetai
               { id: 500, name: publisher, entity_type: 'org', role: 'publisher' },
               { id: 501, name: 'Technical Sciences', entity_type: 'topic', role: 'domain' },
             ],
+            has_fulltext: Boolean(pdfUrl),
+            ia_id: null,
+            pdf_url: pdfUrl || null,
           };
         }
       }

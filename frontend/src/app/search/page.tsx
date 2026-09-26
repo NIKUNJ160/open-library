@@ -309,7 +309,7 @@ function SearchContent() {
                     className="bg-white border border-library-border rounded-md p-5 hover:border-library-accent/60 transition flex flex-col sm:flex-row items-start justify-between gap-4 group"
                   >
                     <div className="space-y-2 max-w-2xl">
-                      <div className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-wider">
+                      <div className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-wider flex-wrap">
                         <span className="px-2 py-0.5 rounded bg-library-card border border-library-border text-library-secondary">
                           {item.source}
                         </span>
@@ -324,6 +324,21 @@ function SearchContent() {
                         <span className="text-library-muted">
                           • {item.license}
                         </span>
+                        {item.has_fulltext && (
+                          <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300/80">
+                            Full Text
+                          </span>
+                        )}
+                        {item.ia_id && (
+                          <span className="px-1.5 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-300/80">
+                            Scanned Book
+                          </span>
+                        )}
+                        {item.pdf_url && (
+                          <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-300/80">
+                            PDF
+                          </span>
+                        )}
                       </div>
 
                       <Link
@@ -354,6 +369,17 @@ function SearchContent() {
                         <BookOpen className="w-3.5 h-3.5" />
                         <span>Read</span>
                       </Link>
+                      {item.pdf_url && (
+                        <a
+                          href={item.pdf_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 rounded border border-purple-200 bg-purple-50 hover:bg-purple-100 text-xs font-semibold text-purple-900 transition flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-3 h-3 text-purple-700" />
+                          <span>PDF</span>
+                        </a>
+                      )}
                       <button
                         onClick={() => setSelectedCitationDoc({ id: item.id, title: item.title })}
                         className="px-3 py-1.5 rounded border border-library-border hover:bg-library-card text-xs font-medium text-library-dark transition flex items-center gap-1"

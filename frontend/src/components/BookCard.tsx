@@ -74,6 +74,29 @@ export const BookCard: React.FC<BookCardProps> = ({ item, onCite }) => {
             )}
           </div>
 
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {item.has_fulltext && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-300/80">
+                Full Text
+              </span>
+            )}
+            {item.ia_id && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-sky-50 text-sky-800 border border-sky-300/80">
+                Scanned Book
+              </span>
+            )}
+            {item.pdf_url && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-purple-50 text-purple-800 border border-purple-300/80">
+                PDF
+              </span>
+            )}
+            {!item.has_fulltext && !item.ia_id && !item.pdf_url && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-stone-100 text-stone-700 border border-stone-200">
+                Synopsis
+              </span>
+            )}
+          </div>
+
           <Link
             href={`/document/${item.id}`}
             className="font-editorial font-bold text-base text-library-dark group-hover:text-library-accent transition line-clamp-2 leading-snug block"
